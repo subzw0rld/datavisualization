@@ -1,6 +1,7 @@
 var ox = window.innerWidth/2, oy = window.innerHeight/2;
 var obitalDistance = 150;
-var differential = 3;
+var differential = 5;
+var speed = 0.005;
 var startTime;
 var config = {
     "4A": 50,
@@ -54,7 +55,8 @@ ParticleSystem.prototype.init = function () {
     this.particleCanvas.setAttribute('width', window.innerWidth);
     this.particleCanvas.setAttribute('height', window.innerHeight);
     this.data = dataModel();
-    this.subtendedAngle = 360/(this.data.length-1);
+    this.subtendedAngle = 360/(this.data.length-1);//<--Subtracting 1 as there always be one at the top level
+    this.theta = (this.subtendedAngle * Math.PI)/180;
 };
 
 ParticleSystem.prototype.drawParticle = function () {
@@ -62,13 +64,10 @@ ParticleSystem.prototype.drawParticle = function () {
     var startAngle = 0;
     var totalSkillData, locationData;
     var i = 0, j = 0;
-    // var angle = 360/(this.data.length-1);//<--Subtracting 1 as there always be one at the top level
     
-    // this.context.arc(x, y, radius, 0, 2*Math.PI);
     for(i = 0; i < this.data.length; i++) {
         var obj = this.data[i];
         // var theta=(Math.PI*this.subtendedAngle)/180*i;
-        var theta = (this.subtendedAngle * Math.PI/180)*i;
         var x;
         var y;
         var superVisor = dataUtil.getEmpByID(obj.supervisor, this.data);
@@ -77,8 +76,8 @@ ParticleSystem.prototype.drawParticle = function () {
             x = ox;
             y = oy;
         }else {
-            x = ox + (Math.cos(theta)*obitalDistance);
-            y = oy + (Math.sin(theta)*obitalDistance);
+            x = ox + (Math.cos(this.theta*i)*obitalDistance);
+            y = oy + (Math.sin(this.theta*i)*obitalDistance);
         }
 
         var radius = config[obj.level];
@@ -89,20 +88,6 @@ ParticleSystem.prototype.drawParticle = function () {
         this.context.closePath();
         this.context.fillStyle = 'rgba(255, 255, 255, 0.6)';
         this.context.fill();
-
-        // var avatar = new Image(40, 20);
-        // var imgPath;
-        // if(obj.avatar.length > 0) {
-        //     imgPath = imagePath + obj.avatar;
-        // }else {
-        //     imgPath = imagePath + 'avatar.png';
-        // }
-        // // console.log(imgPath);
-        // avatar.src = imgPath;
-        // // this.context.drawImage(avatar, 0, 0);
-        // avatar.onload = function() {
-        //     self.context.drawImage(avatar, x, y);
-        // };
 
         //Draw the location band
         this.context.beginPath();
@@ -139,12 +124,15 @@ ParticleSystem.prototype.drawParticle = function () {
 
 ParticleSystem.prototype.animate = function() {
     var movement = Math.random()*differential;
-    ox += Math.random() * differential;
-    oy += Math.random() * differential;
-    this.subtendedAngle+=0.5;
+    
+    this.theta+=speed;
+    // this.subtendedAngle+=speed;
     if (ox > window.innerWidth && oy > window.innerHeight) {
-        ox = 0;
-        oy = 0;
+        ox -= movement;
+        oy -= movement;
+    }else if (ox <=0 && oy <= 0) {
+        ox += movement;
+        oy += movement;
     }
     this.context.clearRect(0, 0, window.innerWidth, window.innerHeight);
     this.drawParticle();
