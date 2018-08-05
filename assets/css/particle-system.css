@@ -1,0 +1,32 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    background: url(../images/3.jpg) no-repeat;
+    background-size: cover;
+    font-family: 'Open Sans', sans-serif;
+    margin: 0;
+}
+
+.option-bar {
+    display: flex;
+    justify-content: flex-end;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.option-bar a{
+    background: #696969;
+    border-radius: 15px;
+    color: #FFF;
+    flex: 0 0 auto;
+    font-size: 10px;
+    margin-right: 5px;
+    margin-top: 15px;
+    text-decoration: none;
+    padding: 8px;
+}
