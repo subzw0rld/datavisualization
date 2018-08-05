@@ -1,7 +1,7 @@
 var imagePath = 'http://127.0.0.1:5500/assets/images/emp-images/';
 var skillData = {
     1: {skill: 'Project Management', color: '#FFBA08'},
-    2: {skill: 'HTML', color: '#D00000'},
+    2: {skill: 'HTML', color: '#FCA311'},
     3: {skill: 'JS', color: '#A2AEBB'},
     4: {skill: 'CSS', color: '#3F88C5'},
     5: {skill: 'Angular', color: '#1C3144'},
@@ -23,11 +23,11 @@ var levelData = {
     1: {level: 'Beginner', color: '#672A4E'},
     2: {level: 'Intermediate', color: '#2D93AD'},
     3: {level: 'Advanced', color: '#507DBC'},
-    4: {level: 'Expert', color: '#BBD1EA'}
+    4: {level: 'Expert', color: '#006992'}
 };
 
 var locationData = {
-    1: {location: 'Noida Sec 135', color: '#758173'},
+    1: {location: 'Noida Sec 135', color: '#14213D'},
     2: {location: 'Noida Sec 64', color: '#A9C5A0'},
     3: {location: 'Chennai', color: '#C6DEC6'}
 };
