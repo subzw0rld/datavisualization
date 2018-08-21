@@ -1,5 +1,0 @@
-[
-    {"title":"Revenue","subtitle":"€, in thousands","ranges":[150,225,300],"measures":[220,270],"markers":[250]},
-    {"title":"Profit","subtitle":"%","ranges":[20,25,30],"measures":[21,23],"markers":[26]},
-    {"title":"Resource","subtitle":"% Utilized","ranges":[20,60,100],"measures":[21,90],"markers":[80]}
-]
