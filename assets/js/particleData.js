@@ -1,4 +1,4 @@
-var imagePath = 'http://127.0.0.1:5500/assets/images/emp-images/';
+var imagePath = '/assets/images/emp-images/';
 var skillData = {
     1: {skill: 'Project Management', color: '#FFBA08'},
     2: {skill: 'HTML', color: '#FCA311'},
@@ -27,17 +27,19 @@ var levelData = {
 };
 
 var locationData = {
-    1: {location: 'Noida Sec 135', color: '#14213D'},
-    2: {location: 'Noida Sec 64', color: '#A9C5A0'},
+    1: {location: 'Noida Site 3 Unit 1', color: '#14213D'},
+    2: {location: 'Noida Site 1', color: '#A9C5A0'},
     3: {location: 'Chennai', color: '#C6DEC6'}
 };
 
 var data = [{
         name: 'Arun Anand',
-        empID: 163346,
-        avatar: 'aruanand.jpg',
+        empID: 607457,
+        avatar: 'aruanand.png',
         location: 1,
-        desig: 'Principal Delivery Manager',
+        desig: 'Senior Delivery Manager',
+        client: ['EPO'],
+        email: 'nikhil.srivastava@soprasteria.com',
         level: '4B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -53,7 +55,7 @@ var data = [{
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
         ],
-        supervisor: 163346
+        supervisor: 607457
     },
     {
         name: 'Anil Sharma',
@@ -65,7 +67,7 @@ var data = [{
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
         ],
-        supervisor: 163346
+        supervisor: 607457
     },
     {
         name: 'Nikhil Srivastava',
@@ -77,7 +79,7 @@ var data = [{
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
         ],
-        supervisor: 163346
+        supervisor: 607457
     },
     {
         name: 'Vivek Govil',
@@ -89,7 +91,7 @@ var data = [{
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
         ],
-        supervisor: 163346
+        supervisor: 607457
     },
     {
         name: 'Subroto Mukherjee',
@@ -106,6 +108,20 @@ var data = [{
             { id: 15, level: 4 }, { id: 16, level: 4 },
             { id: 17, level: 4 }
         ],
-        supervisor: 163346
+        supervisor: 607457
+    },
+    {
+        name: 'Maninder Bali',
+        empID: 682145,
+        avatar: '',
+        location: 1,
+        desig: 'Software Developer',
+        level: '7A',
+        skill: [{ id: 2, level: 4 }, { id: 3, level: 1 },
+            { id: 4, level: 4 }, { id: 5, level: 3 },
+            { id: 6, level: 4 }, { id: 7, level: 2 },
+            { id: 8, level: 4 }, { id: 9, level: 4 }
+        ],
+        supervisor: 607457
     }
 ];
