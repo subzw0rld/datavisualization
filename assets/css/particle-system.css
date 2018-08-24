@@ -269,3 +269,7 @@ li {
 .close-icon:hover {
     transform: rotate(90deg);
 }
+
+.hide {
+    display: none;
+}
