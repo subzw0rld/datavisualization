@@ -12,9 +12,6 @@ var particleInfoCloseIcon = Util.documentSelector('.close-icon');
 /***********HTML elements *************/
 
 //Animation effects
-var elastic = AnimationTimer.makeElastic(2);
-var ANIMATION_DURATION = 1800;
-var animationTimer = new AnimationTimer(ANIMATION_DURATION);
 var pulseRadiusIncrement = 0;
 var particleSelected;
 var beatRadius = 0;
@@ -119,7 +116,6 @@ ParticleSystem.prototype.init = function () {
     this.thetaArr = {};
     this.superVisorParticle = [];
     this.superVisorCount = 0;
-    animationTimer.start();
     // console.info(this.data);
 };
 
@@ -138,20 +134,6 @@ ParticleSystem.prototype.drawParticle = function () {
         if (!obj.supervisor) {
             x = obj.x;
             y = obj.y;
-            // pulseOuterRadius = config[obj.level] + 28,
-            // pulseInnerRadius = config[obj.level] + 21;
-
-            // this.context.beginPath();
-            // this.context.arc(x, y, pulseOuterRadius+pulseRadiusIncrement, pulseStartRadian, pulseEndRadian, false);
-            // this.context.arc(x, y, pulseInnerRadius+pulseRadiusIncrement, pulseEndRadian, pulseStartRadian, true);
-            // this.context.closePath();
-            // this.context.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            // this.context.fill();
-            // if(pulseRadiusIncrement <= 30) {
-            //     pulseRadiusIncrement+=0.05;
-            // }else{
-            //     pulseRadiusIncrement = 0;
-            // }
         } else {
             nucleus = this.data[obj.supervisor];
             if (firstRun) {
