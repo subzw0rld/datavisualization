@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Particle System - Team View</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/particle-system.css">
+</head>
+<body>
+    <div class="particleWrapper">
+        <canvas id="particleContainer"></canvas>
+    </div>
+    <div class="option-bar">
+        <a href="/" >Project View</a>
+        <a href="teamview.html" >Team View</a>
+    </div>
+    <div class="legend-panel">
+        <a href="javascript:void(0)" class="toggle-panel">
+            <i class="toggle-icon close"></i>
+        </a>
+        <h1 class="panel-title">Legend</h1>
+        <h2 class="legend-title">Skill</h2>
+        <ul class="skill-list"></ul>
+        <h2 class="legend-title">Level</h2>
+        <ul class="level-list"></ul>
+        <h2 class="legend-title">Location</h2>
+        <ul class="location-list"></ul>
+    </div>
+    <div class="particle-info-container">
+        <h1 class="center-text">Particle Info</h1>
+        <a href="javascript:void(0);" class="close-icon"></a>
+        <div class="particle-info">
+            <div class="particle-info-detail">
+                <p>Name:
+                    <span class="info-name"></span>
+                </p>
+                <p>Title:
+                    <span class="info-title"></span>
+                </p>
+                <p>Level:
+                    <span class="info-level"></span>
+                </p>
+                <p>Location:
+                    <span class="info-location"></span>
+                </p>
+                <p class="hide">Supervisor:
+                    <span class="info-supervisor"></span>
+                </p>
+                <p class="hide">Total Supervisee:
+                    <span class="info-supervisee"></span>
+                </p>
+            </div>
+            <div class="particle-avatar">
+                <img src="./assets/images/emp-images/avatar.png">
+            </div>
+        </div>
+        <div class="visual-container">
+            <div class="card">
+                <h2 class="center-text">Project Top Billed</h2>
+                <div id="projectTopBilled" class="svg-holder">
+                    <canvas width="600" height = "350">
+
+                    </canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2 class="center-text">Project Status</h2>
+                <div id="projectStatus" class="svg-holder">
+                    <canvas width="600" height = "350">
+
+                    </canvas>
+                </div>
+            </div>
+            <div class="card">
+                <!-- <h2 class="center-text">Projects</h2>
+                <div id="projectTeam" class="svg-holder">
+                    <canvas width="600" height = "350">
+
+                    </canvas>
+                </div> -->
+            </div>
+        </div>
+    </div>
+    <script src="../assets/js/Object.Assign.js"></script>
+    <script src="./assets/js/Chart.js"></script>
+    <script src="./assets/js/Util.js"></script>
+    <script src="./assets/js/teamData.js"></script>
+    <script src="./assets/js/legendPanel.js"></script>
+    <script src="./assets/js/particle-system.js"></script>
+    <script src="./assets/js/customChart.js"></script>
+</body>
+</html>
