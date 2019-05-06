@@ -186,6 +186,7 @@ ParticleSystem.prototype.drawParticle = function () {
         this.context.fillStyle = 'rgba(255, 255, 255, 0.6)';
         this.context.fill();
         //Add the avatar
+        console.log(obj);
         this.context.drawImage(obj.avatarImg, x - obj.avatarImg.width / 2, y - obj.avatarImg.height / 2);
         //Draw the location band
         this.context.beginPath();

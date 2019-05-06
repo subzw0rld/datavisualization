@@ -1,4 +1,4 @@
-var imagePath = '/assets/images/emp-images/';
+var imagePath = './assets/images/emp-images/';
 var skillData = {
     1: { skill: 'Project Management', color: '#FFBA08' },
     2: { skill: 'HTML', color: '#FCA311' },
@@ -21,7 +21,7 @@ var skillData = {
 
 var levelData = {
     1: { level: 'Beginner', color: '#672A4E' },
-    2: { level: 'Intermediate', color: '#2D93AD' },
+    2: { level: 'Intermediate', color: '#FF0000' },
     3: { level: 'Advanced', color: '#507DBC' },
     4: { level: 'Expert', color: '#006992' }
 };
@@ -35,14 +35,14 @@ var data = {
     607457: {
         name: 'Arun Anand',
         empID: 607457,
-        avatar: 'aruanand.png',
+        avatar: '',
         location: 1,
         desig: 'Senior Delivery Manager',
         client: ['EPO'],
         email: 'nikhil.srivastava@soprasteria.com',
         level: '4B',
         totalSupervisee: 5,
-        skill: [{ id: 1, level: 4 },
+        skill: [{ id: 1, level: 2 },
         { id: 17, level: 4 }
         ]
     },
@@ -105,7 +105,7 @@ var data = {
         { id: 4, level: 4 }, { id: 5, level: 4 },
         { id: 6, level: 4 }, { id: 7, level: 4 },
         { id: 8, level: 4 }, { id: 9, level: 4 },
-        { id: 12, level: 4 }, { id: 14, level: 4 },
+        { id: 12, level: 4 }, { id: 14, level: 2 },
         { id: 15, level: 4 }, { id: 16, level: 4 },
         { id: 17, level: 4 }
         ],

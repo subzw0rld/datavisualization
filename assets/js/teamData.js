@@ -1,4 +1,4 @@
-var imagePath = 'http://127.0.0.1:5500/assets/images/emp-images/';
+var imagePath = './assets/images/emp-images/';
 var skillData = {
     1: {skill: 'Project Management', color: '#FFBA08'},
     2: {skill: 'HTML', color: '#FCA311'},
@@ -45,7 +45,7 @@ var data = {
         nucleus: true,
         desig: 'Delivery Manager - AM',
         client: ['EPO'],
-        email: 'ratnesh.sharma@soprasteria.com',
+        email: 'ratnesh.sharma@xxx.com',
         level: '5B',
         totalSupervisee: 16,
         skill: [{ id: 1, level: 4 },
@@ -60,7 +60,7 @@ var data = {
         nucleus: true,
         desig: 'Project Manager',
         client: ['EPO'],
-        email: 'anil.sharma@soprasteria.com',
+        email: 'anil.sharma@xxx.com',
         level: '5B',
         totalSupervisee: 12,
         skill: [{ id: 1, level: 4 },
@@ -75,7 +75,7 @@ var data = {
         nucleus: true,
         desig: 'Delivery Manager - AM',
         client: ['EPO'],
-        email: 'nikhil.srivastava@soprasteria.com',
+        email: 'nikhil.srivastava@xxx.com',
         level: '5B',
         totalSupervisee: 6,
         skill: [{ id: 1, level: 4 },
@@ -85,12 +85,12 @@ var data = {
     610120:{
         name: 'Vivek Govil',
         empID: 610120,
-        avatar: 'vigovil.png',
+        avatar: '',
         location: 1,
         nucleus: true,
         desig: 'Delivery Manager - AM',
         client: ['EPO'],
-        email: 'vivek.govil@soprasteria.com',
+        email: 'vivek.govil@xxx.com',
         level: '5B',
         totalSupervisee: 1,
         skill: [{ id: 1, level: 4 },
@@ -100,12 +100,12 @@ var data = {
     613429:{
         name: 'Dinesh Aneja',
         empID: 613429,
-        avatar: 'dianeja.png',
+        avatar: '',
         location: 1,
         nucleus: true,
         desig: 'Delivery Manager - AM',
         client: ['EPO'],
-        email: 'dinesh.aneja@soprasteria.com',
+        email: 'dinesh.aneja@xxx.com',
         level: '5B',
         totalSupervisee: 1,
         skill: [{ id: 1, level: 4 },
@@ -120,7 +120,7 @@ var data = {
         nucleus: true,
         desig: 'Service Manager',
         client: ['EPO'],
-        email: 'gagandeep.singh9398@soprasteria.com',
+        email: 'gagandeep.singh9398@xxx.com',
         level: '5B',
         totalSupervisee: 4,
         skill: [{ id: 1, level: 4 },
@@ -130,12 +130,12 @@ var data = {
     670569: {
         name: 'Vishesh Kumar Gupta',
         empID: 670569,
-        avatar: 'vkgupta.png',
+        avatar: '',
         location: 1,
         nucleus: true,
         desig: 'Business Consultant',
         client: ['EPO'],
-        email: 'vishesh-kumar.gupta@soprasteria.com',
+        email: 'vishesh-kumar.gupta@xxx.com',
         level: '5B',
         totalSupervisee: 8,
         skill: [{ id: 1, level: 4 },
@@ -150,7 +150,7 @@ var data = {
         nucleus: true,
         desig: 'Senior Technical Architect',
         client: ['EPO'],
-        email: 'sandeep.sharma@soprasteria.com',
+        email: 'sandeep.sharma@xxx.com',
         level: '5B',
         totalSupervisee: 1,
         skill: [{ id: 1, level: 1 },
@@ -165,7 +165,7 @@ var data = {
         nucleus: true,
         desig: 'Consulting Architect',
         client: ['EPO'],
-        email: 'subroto.mukherjee@soprasteria.com',
+        email: 'subroto.mukherjee@xxx.com',
         level: '5B',
         totalSupervisee: 1,
         skill: [{ id: 2, level: 4 }, { id: 3, level: 4 },
@@ -184,7 +184,7 @@ var data = {
         location: 1,
         desig: 'Senior Test Analyst',
         client: ['EPO'],
-        email: 'shikha.sharma@soprasteria.com',
+        email: 'shikha.sharma@xxx.com',
         level: '6B',
         totalSupervisee: 7,
         skill: [{ id: 1, level: 4 },
@@ -199,7 +199,7 @@ var data = {
         location: 1,
         desig: 'Senior Test Analyst',
         client: ['EPO'],
-        email: 'swati.khullar@soprasteria.com',
+        email: 'swati.khullar@xxx.com',
         level: '6B',
         totalSupervisee: 1,
         skill: [{ id: 1, level: 4 },
@@ -214,7 +214,7 @@ var data = {
         location: 1,
         desig: 'Delivery Manager - AM',
         client: ['EPO'],
-        email: 'amit.gupta@soprasteria.com',
+        email: 'amit.gupta@xxx.com',
         level: '5B',
         totalSupervisee: 1,
         skill: [{ id: 1, level: 4 },
@@ -229,7 +229,7 @@ var data = {
         location: 1,
         desig: 'Senior Test Analyst',
         client: ['EPO'],
-        email: 'ashwarya.sharma@soprasteria.com',
+        email: 'ashwarya.sharma@xxx.com',
         level: '6B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -243,26 +243,13 @@ var data = {
         location: 1,
         desig: 'Test Analyst',
         client: ['EPO'],
-        email: 'preeti.bindal@soprasteria.com',
+        email: 'preeti.bindal@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
         ],
         supervisor: 672267
     },
-    // {
-    //     name: 'Gaurav Pandey',
-    //     empID: 617912,
-    //     avatar: '',
-    //     location: 1,
-    //     desig: 'Senior Software Engineer',
-    //     client: ['EPO'],
-    //     email: 'gaurav.pandey@soprasteria.com',
-    //     level: '6A',
-    //     skill: [{ id: 1, level: 4 },
-    //         { id: 17, level: 4 }
-    //     ]
-    // },
     671735: {
         name: 'Bhakti Soni',
         empID: 671735,
@@ -270,7 +257,7 @@ var data = {
         location: 1,
         desig: 'Senior Test Analyst',
         client: ['EPO'],
-        email: 'bhakti.soni@soprasteria.com',
+        email: 'bhakti.soni@xxx.com',
         level: '6B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -284,7 +271,7 @@ var data = {
         location: 1,
         desig: 'Senior Software Engineer',
         client: ['EPO'],
-        email: 'vineet.gupta4961@soprasteria.com',
+        email: 'vineet.gupta4961@xxx.com',
         level: '6B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -298,7 +285,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'ravinder.rana@soprasteria.com',
+        email: 'ravinder.rana@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -312,7 +299,7 @@ var data = {
         location: 1,
         desig: 'Junior Software Engineer',
         client: ['EPO'],
-        email: 'shivangi.tripathi@soprasteria.com',
+        email: 'shivangi.tripathi@xxx.com',
         level: '8A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -326,7 +313,7 @@ var data = {
         location: 1,
         desig: 'Test Analyst',
         client: ['EPO'],
-        email: 'abhijit.panda@soprasteria.com',
+        email: 'abhijit.panda@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -340,7 +327,7 @@ var data = {
         location: 1,
         desig: 'Test Analyst',
         client: ['EPO'],
-        email: 'sahil.gupta@soprasteria.com',
+        email: 'sahil.gupta@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -354,7 +341,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'nidhi.jain1@soprasteria.com',
+        email: 'nidhi.jain1@xxx.com',
         level: '7B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -368,7 +355,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'zeeshan.waris@soprasteria.com',
+        email: 'zeeshan.waris@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -382,7 +369,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'saranjeet.kaur@soprasteria.com',
+        email: 'saranjeet.kaur@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -396,7 +383,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'shruti.jain2@soprasteria.com',
+        email: 'shruti.jain2@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -410,7 +397,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'poonam.sabharwal@soprasteria.com',
+        email: 'poonam.sabharwal@xxx.com',
         level: '6B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -424,7 +411,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'rashi.prakash@soprasteria.com',
+        email: 'rashi.prakash@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -438,7 +425,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'rupakshi.gupta@soprasteria.com',
+        email: 'rupakshi.gupta@xxx.com',
         level: '8A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -452,7 +439,7 @@ var data = {
         location: 1,
         desig: 'Test Analyst',
         client: ['EPO'],
-        email: 'deepanshu.garg@soprasteria.com',
+        email: 'deepanshu.garg@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -466,7 +453,7 @@ var data = {
         location: 1,
         desig: 'Junior Software Engineer',
         client: ['EPO'],
-        email: 'deepanshu.garg@soprasteria.com',
+        email: 'deepanshu.garg@xxx.com',
         level: '8A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -480,7 +467,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'monika.kapoor@soprasteria.com',
+        email: 'monika.kapoor@xxx.com',
         level: '7B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -494,7 +481,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'nitin.sharma@soprasteria.com',
+        email: 'nitin.sharma@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -508,7 +495,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'suraj.singh@soprasteria.com',
+        email: 'suraj.singh@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -522,7 +509,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'abhishek.kumar2@soprasteria.com',
+        email: 'abhishek.kumar2@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -536,7 +523,7 @@ var data = {
         location: 1,
         desig: 'Senior Software Engineer',
         client: ['EPO'],
-        email: 'amit.garg@soprasteria.com',
+        email: 'amit.garg@xxx.com',
         level: '6B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -550,7 +537,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'dipanshu.asri@soprasteria.com',
+        email: 'dipanshu.asri@xxx.com',
         level: '7B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -564,7 +551,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'babloo.kumar@soprasteria.com',
+        email: 'babloo.kumar@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -578,7 +565,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'narotam.singh@soprasteria.com',
+        email: 'narotam.singh@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -592,7 +579,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'maninder.bali@soprasteria.com',
+        email: 'maninder.bali@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -606,7 +593,7 @@ var data = {
         location: 1,
         desig: 'Senior Software Engineer',
         client: ['EPO'],
-        email: 'manoj.kumar3@soprasteria.com',
+        email: 'manoj.kumar3@xxx.com',
         level: '6B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -620,7 +607,7 @@ var data = {
         location: 1,
         desig: 'Test Analyst',
         client: ['EPO'],
-        email: 'sonu.kumar@soprasteria.com',
+        email: 'sonu.kumar@xxx.com',
         level: '7B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -634,7 +621,7 @@ var data = {
         location: 1,
         desig: 'Senior Software Engineer',
         client: ['EPO'],
-        email: 'gaurav.garg3@soprasteria.com',
+        email: 'gaurav.garg3@xxx.com',
         level: '6A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -648,7 +635,7 @@ var data = {
         location: 3,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'vignesh.arivazhagan@soprasteria.com',
+        email: 'vignesh.arivazhagan@xxx.com',
         level: '7B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -662,7 +649,7 @@ var data = {
         location: 3,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'deepan.vadivel@soprasteria.com',
+        email: 'deepan.vadivel@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -676,7 +663,7 @@ var data = {
         location: 1,
         desig: 'Senior Software Engineer',
         client: ['EPO'],
-        email: 'kavita.kavita2@soprasteria.com',
+        email: 'kavita.kavita2@xxx.com',
         level: '6A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -690,7 +677,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'chandra.bahadur@soprasteria.com',
+        email: 'chandra.bahadur@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -704,7 +691,7 @@ var data = {
         location: 1,
         desig: 'Senior Software Engineer',
         client: ['EPO'],
-        email: 'sageer.ahmed@soprasteria.com',
+        email: 'sageer.ahmed@xxx.com',
         level: '6A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -718,7 +705,7 @@ var data = {
         location: 1,
         desig: 'Junior Test Analyst',
         client: ['EPO'],
-        email: 'abhilash.tiwari@soprasteria.com',
+        email: 'abhilash.tiwari@xxx.com',
         level: '8B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -732,7 +719,7 @@ var data = {
         location: 1,
         desig: 'Senior Software Engineer',
         client: ['EPO'],
-        email: 'vaibhav.vaibhav2@soprasteria.com',
+        email: 'vaibhav.vaibhav2@xxx.com',
         level: '6B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -746,7 +733,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'gaurav.sinha@soprasteria.com',
+        email: 'gaurav.sinha@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -760,7 +747,7 @@ var data = {
         location: 1,
         desig: 'Senior Software Engineer',
         client: ['EPO'],
-        email: 'himanshu.vashistha@soprasteria.com',
+        email: 'himanshu.vashistha@xxx.com',
         level: '6B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -774,7 +761,7 @@ var data = {
         location: 1,
         desig: 'Test Analyst',
         client: ['EPO'],
-        email: 'vineet.raj@soprasteria.com',
+        email: 'vineet.raj@xxx.com',
         level: '7B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -788,7 +775,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'palvinder.singh@soprasteria.com',
+        email: 'palvinder.singh@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -802,7 +789,7 @@ var data = {
         location: 1,
         desig: 'Senior Software Engineer',
         client: ['EPO'],
-        email: 'mohammad.akhtar@soprasteria.com',
+        email: 'mohammad.akhtar@xxx.com',
         level: '6B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -816,7 +803,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'mohammad.azeem@soprasteria.com',
+        email: 'mohammad.azeem@xxx.com',
         level: '7B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -830,7 +817,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'ashad.naseem@soprasteria.com',
+        email: 'ashad.naseem@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -844,7 +831,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'jitendra.dhanagar@soprasteria.com',
+        email: 'jitendra.dhanagar@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -858,7 +845,7 @@ var data = {
         location: 1,
         desig: 'Junior Software Engineer',
         client: ['EPO'],
-        email: 'ankit.jain42@soprasteria.com',
+        email: 'ankit.jain42@xxx.com',
         level: '8A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -872,7 +859,7 @@ var data = {
         location: 1,
         desig: 'Junior Software Engineer',
         client: ['EPO'],
-        email: 'rajat.arora@soprasteria.com',
+        email: 'rajat.arora@xxx.com',
         level: '8A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -886,7 +873,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'pawan.mandhan@soprasteria.com',
+        email: 'pawan.mandhan@xxx.com',
         level: '7B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -900,7 +887,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'abiram.abiram@soprasteria.com',
+        email: 'abiram.abiram@xxx.com',
         level: '7B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -914,7 +901,7 @@ var data = {
         location: 1,
         desig: 'Junior Software Engineer',
         client: ['EPO'],
-        email: 'aayush.rohila@soprasteria.com',
+        email: 'aayush.rohila@xxx.com',
         level: '8A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -928,7 +915,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'adnan.khan@soprasteria.com',
+        email: 'adnan.khan@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -942,7 +929,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'devesh.mishra@soprasteria.com',
+        email: 'devesh.mishra@xxx.com',
         level: '7A',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
@@ -956,7 +943,7 @@ var data = {
         location: 1,
         desig: 'Software Engineer',
         client: ['EPO'],
-        email: 'harshit.tailang@soprasteria.com',
+        email: 'harshit.tailang@xxx.com',
         level: '7B',
         skill: [{ id: 1, level: 4 },
             { id: 17, level: 4 }
