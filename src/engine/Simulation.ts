@@ -1,4 +1,5 @@
 import type { ParticleNode, SimulationFilters } from '../types';
+import { Camera } from './Camera';
 
 export class Simulation {
   public nodes: ParticleNode[] = [];
@@ -10,15 +11,25 @@ export class Simulation {
   public hoveredNodeId: number | null = null;
   public draggedNode: ParticleNode | null = null;
 
-  private worldBounds: { width: number; height: number } = {
-    width: window.innerWidth * 2,
-    height: window.innerHeight * 2
+  // 3D Cosmic Space Boundaries
+  private cosmicBounds = {
+    minX: -2200,
+    maxX: 2200,
+    minY: -1500,
+    maxY: 1500,
+    minZ: -900,
+    maxZ: 1400
   };
 
   public setBounds(width: number, height: number): void {
-    this.worldBounds = {
-      width: Math.max(1600, width * 1.5),
-      height: Math.max(1200, height * 1.5)
+    const span = Math.max(width, height) * 1.8;
+    this.cosmicBounds = {
+      minX: -span,
+      maxX: span,
+      minY: -span * 0.75,
+      maxY: span * 0.75,
+      minZ: -1000,
+      maxZ: 1400
     };
   }
 
@@ -53,14 +64,19 @@ export class Simulation {
     node.isDragging = true;
     node.vx = 0;
     node.vy = 0;
+    node.vz = 0;
   }
 
-  public updateDrag(worldX: number, worldY: number): void {
+  public updateDrag(worldX: number, worldY: number, worldZ?: number): void {
     if (!this.draggedNode) return;
     this.draggedNode.x = worldX;
     this.draggedNode.y = worldY;
+    if (worldZ !== undefined) {
+      this.draggedNode.z = worldZ;
+    }
     this.draggedNode.vx = 0;
     this.draggedNode.vy = 0;
+    this.draggedNode.vz = 0;
   }
 
   public endDrag(): void {
@@ -109,8 +125,8 @@ export class Simulation {
     }
   }
 
-  public update(dt: number): void {
-    // Clamp delta-time to prevent physics instability during tab switching
+  public update(dt: number, camera: Camera): void {
+    // Clamp delta-time to prevent numerical instability during frame lag
     const safeDt = Math.min(dt, 0.05);
 
     // 1. Update selection pulse timer
@@ -120,71 +136,98 @@ export class Simulation {
       }
     }
 
-    if (this.paused) return;
+    if (!this.paused) {
+      const bounds = this.cosmicBounds;
 
-    const minX = 150;
-    const minY = 150;
-    const maxX = this.worldBounds.width - 150;
-    const maxY = this.worldBounds.height - 150;
+      // 2. Update Root Galaxy Nuclei with Mass-Dependent Drift
+      for (const root of this.roots) {
+        if (!root.isDragging) {
+          // Slow continuous orientation wandering
+          root.wanderAngle += (Math.random() - 0.5) * safeDt * 1.6;
 
-    // 2. Update Root / Wandering nodes
-    for (const root of this.roots) {
-      if (!root.isDragging) {
-        // Wandering angle physics with gentle drift
-        root.wanderAngle += (Math.random() - 0.5) * safeDt * 2.0;
-        const speed = root.wanderSpeed * this.speedMultiplier;
+          // Speed inversely proportional to total system mass
+          const speed = root.wanderSpeed * this.speedMultiplier;
 
-        let fx = Math.cos(root.wanderAngle) * speed;
-        let fy = Math.sin(root.wanderAngle) * speed;
+          let fx = Math.cos(root.wanderAngle) * speed;
+          let fy = Math.sin(root.wanderAngle) * speed * 0.75;
+          let fz = Math.sin(root.wanderAngle * 0.7) * speed * 0.5;
 
-        // Soft boundary avoidance steering
-        if (root.x < minX) fx += (minX - root.x) * 2;
-        if (root.x > maxX) fx -= (root.x - maxX) * 2;
-        if (root.y < minY) fy += (minY - root.y) * 2;
-        if (root.y > maxY) fy -= (root.y - maxY) * 2;
+          // Soft cosmic boundary rebound
+          if (root.x < bounds.minX) fx += (bounds.minX - root.x) * 1.5;
+          if (root.x > bounds.maxX) fx -= (root.x - bounds.maxX) * 1.5;
+          if (root.y < bounds.minY) fy += (bounds.minY - root.y) * 1.5;
+          if (root.y > bounds.maxY) fy -= (root.y - bounds.maxY) * 1.5;
+          if (root.z < bounds.minZ) fz += (bounds.minZ - root.z) * 1.5;
+          if (root.z > bounds.maxZ) fz -= (root.z - bounds.maxZ) * 1.5;
 
-        root.vx += (fx - root.vx) * safeDt * 2.0;
-        root.vy += (fy - root.vy) * safeDt * 2.0;
+          root.vx += (fx - root.vx) * safeDt * 2.0;
+          root.vy += (fy - root.vy) * safeDt * 2.0;
+          root.vz += (fz - root.vz) * safeDt * 2.0;
 
-        root.x += root.vx * safeDt;
-        root.y += root.vy * safeDt;
+          root.x += root.vx * safeDt;
+          root.y += root.vy * safeDt;
+          root.z += root.vz * safeDt;
+        }
+      }
+
+      // 3. Update Child Orbital Nodes in Tilted 3D Planes with Spring Physics
+      for (const node of this.nodes) {
+        if (node.isRoot || !node.supervisorId) continue;
+
+        const supervisor = this.nodeMap.get(node.supervisorId);
+        if (!supervisor) continue;
+
+        // Advance orbital angle
+        const angularStep = node.angularVelocity * this.speedMultiplier * safeDt;
+        node.theta = (node.theta + angularStep) % (Math.PI * 2);
+
+        if (node.isDragging) {
+          continue;
+        }
+
+        // Tilted 3D orbital plane basis vectors
+        const u = node.basisU || { x: 1, y: 0, z: 0 };
+        const v = node.basisV || { x: 0, y: 1, z: 0 };
+        const r = node.orbitalDistance;
+        const cosT = Math.cos(node.theta);
+        const sinT = Math.sin(node.theta);
+
+        // Ideal 3D target coordinate: P_target = P_parent + R*cos(theta)*u + R*sin(theta)*v
+        const targetX = supervisor.x + r * cosT * u.x + r * sinT * v.x;
+        const targetY = supervisor.y + r * cosT * u.y + r * sinT * v.y;
+        const targetZ = supervisor.z + r * cosT * u.z + r * sinT * v.z;
+
+        // Damped 3D spring-damper tracking
+        const springK = 7.5;
+        const damping = 4.2;
+
+        const ax = (targetX - node.x) * springK - node.vx * damping;
+        const ay = (targetY - node.y) * springK - node.vy * damping;
+        const az = (targetZ - node.z) * springK - node.vz * damping;
+
+        node.vx += ax * safeDt;
+        node.vy += ay * safeDt;
+        node.vz += az * safeDt;
+
+        node.x += node.vx * safeDt;
+        node.y += node.vy * safeDt;
+        node.z += node.vz * safeDt;
       }
     }
 
-    // 3. Update Child Orbital Nodes with Spring Physics
-    // Nodes are topologically sorted by depth, ensuring supervisors move before their children
+    // 4. Compute 3D Projected Screen Coordinates for all nodes
     for (const node of this.nodes) {
-      if (node.isRoot || !node.supervisorId) continue;
+      const proj = camera.project3D(node.x, node.y, node.z);
+      node.projX = proj.screenX;
+      node.projY = proj.screenY;
+      node.projZ = proj.depth;
+      node.projScale = proj.scale;
+      // Apparent viewing size directly determined by distance from viewer!
+      node.projRadius = Math.max(6, node.totalHitRadius * proj.scale);
 
-      const supervisor = this.nodeMap.get(node.supervisorId);
-      if (!supervisor) continue;
-
-      // Update orbital angle
-      const angularStep = node.angularVelocity * this.speedMultiplier * safeDt;
-      node.theta = (node.theta + angularStep) % (Math.PI * 2);
-
-      // Compute ideal target orbit coordinate
-      const targetX = supervisor.x + Math.cos(node.theta) * node.orbitalDistance;
-      const targetY = supervisor.y + Math.sin(node.theta) * node.orbitalDistance;
-
-      if (node.isDragging) {
-        // User is directly manipulating this node
-        continue;
-      }
-
-      // Damped spring-damper system following target orbital position
-      // Higher spring stiffness gives crisp responsiveness, damping prevents oscillation
-      const springK = 7.5;
-      const damping = 4.2;
-
-      const ax = (targetX - node.x) * springK - node.vx * damping;
-      const ay = (targetY - node.y) * springK - node.vy * damping;
-
-      node.vx += ax * safeDt;
-      node.vy += ay * safeDt;
-
-      node.x += node.vx * safeDt;
-      node.y += node.vy * safeDt;
+      // Atmospheric/cosmic depth fade: distant nodes are gently dimmed
+      const depthFactor = Math.min(1.2, Math.max(0.25, proj.scale));
+      node.projAlpha = 0.35 + 0.65 * Math.min(1.0, depthFactor);
     }
   }
 }

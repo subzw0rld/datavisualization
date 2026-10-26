@@ -35,6 +35,35 @@ export class SpatialHashGrid {
     }
   }
 
+  /**
+   * 3D Ray-cast / Screen-space hit test:
+   * Finds the particle underneath (screenX, screenY) in screen coordinates.
+   * If particles overlap along line of sight, picks the one closest to the viewer (smallest depth projZ).
+   */
+  public queryScreenPoint(screenX: number, screenY: number, nodes: ParticleNode[]): ParticleNode | null {
+    let closestNode: ParticleNode | null = null;
+    let minDepth = Infinity;
+
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      const dx = screenX - node.projX;
+      const dy = screenY - node.projY;
+      const distSq = dx * dx + dy * dy;
+
+      // Generous hit radius for seamless clicking on small/distant nodes
+      const hitRadius = Math.max(16, node.projRadius + 6);
+
+      if (distSq <= hitRadius * hitRadius) {
+        if (node.projZ < minDepth) {
+          minDepth = node.projZ;
+          closestNode = node;
+        }
+      }
+    }
+
+    return closestNode;
+  }
+
   public queryPoint(worldX: number, worldY: number): ParticleNode | null {
     const cx = Math.floor(worldX / this.cellSize);
     const cy = Math.floor(worldY / this.cellSize);
@@ -42,7 +71,6 @@ export class SpatialHashGrid {
     let closestNode: ParticleNode | null = null;
     let minDistanceSq = Infinity;
 
-    // Check 3x3 surrounding cells to account for radius overlapping cell boundaries
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         const key = `${cx + dx}:${cy + dy}`;

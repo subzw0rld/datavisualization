@@ -163,6 +163,11 @@ html, body {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
 }
 
 .view-btn:hover {
@@ -264,6 +269,100 @@ html, body {
 
 .speed-dropdown:focus {
   border-color: var(--accent-cyan);
+}
+
+/* Interactive 3D Zoom Slider Controls in Top Nav */
+.zoom-controls-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-glass);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.zoom-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  line-height: 1;
+}
+
+.zoom-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: var(--accent-cyan);
+  color: #fff;
+}
+
+.zoom-slider-container {
+  display: flex;
+  align-items: center;
+  width: 90px;
+}
+
+.zoom-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.zoom-slider:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.zoom-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  background: #7dd3fc;
+}
+
+.zoom-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+.zoom-percentage-badge {
+  font-size: 0.72rem;
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  min-width: 38px;
+  text-align: right;
+  user-select: none;
 }
 
 /* ==========================================================================
@@ -520,8 +619,8 @@ html, body {
 
 .dialog-close {
   position: absolute;
-  top: 18px;
-  right: 18px;
+  top: 16px;
+  right: 20px;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -533,6 +632,7 @@ html, body {
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  z-index: 10;
 }
 
 .dialog-close:hover {
@@ -546,6 +646,122 @@ html, body {
   display: flex;
   align-items: center;
   gap: 20px;
+}
+
+.header-actions {
+  margin-left: auto;
+  align-self: flex-end;
+  margin-top: 26px;
+}
+
+.btn-primary-action {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.35));
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #38bdf8;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15);
+}
+
+.btn-primary-action:hover {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.45), rgba(99, 102, 241, 0.55));
+  border-color: #38bdf8;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.3);
+}
+
+/* 3D Cosmic System & Astrophysics Metrics Bar */
+.cosmic-insights-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+@media (max-width: 640px) {
+  .cosmic-insights-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.insight-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.insight-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.insight-val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  font-family: monospace;
+}
+
+/* Client Accounts / Portfolio */
+.clients-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+}
+
+.clients-label {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.clients-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.client-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(236, 72, 153, 0.15);
+  border: 1px solid rgba(236, 72, 153, 0.35);
+  color: #f472b6;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.badge-sub {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-weight: 500;
 }
 
 .avatar-ring {
@@ -723,6 +939,19 @@ html, body {
 }
 
 @media (max-width: 600px) {
+  .employee-card-header {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .header-actions {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 14px;
+  }
+  .btn-primary-action {
+    width: 100%;
+    justify-content: center;
+  }
   .charts-section {
     grid-template-columns: 1fr;
   }

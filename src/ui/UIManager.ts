@@ -11,6 +11,10 @@ export interface UIEventListeners {
   onToggleOrbits: () => boolean;
   onToggleLinks: () => boolean;
   onSelectNode: (empID: number) => void;
+  onFocusNode3D: (empID: number) => void;
+  onZoomChange: (percent: number) => void;
+  onZoomStep: (deltaPercent: number) => void;
+  onCloseNodeDetails?: () => void;
 }
 
 export class UIManager {
@@ -39,15 +43,13 @@ export class UIManager {
     const projectBtn = document.getElementById('btn-view-project');
     const teamBtn = document.getElementById('btn-view-team');
 
-    projectBtn?.addEventListener('click', () => {
-      projectBtn.classList.add('active');
-      teamBtn?.classList.remove('active');
+    projectBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
       this.listeners.onDatasetChange('project');
     });
 
-    teamBtn?.addEventListener('click', () => {
-      teamBtn.classList.add('active');
-      projectBtn?.classList.remove('active');
+    teamBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
       this.listeners.onDatasetChange('team');
     });
 
@@ -91,6 +93,26 @@ export class UIManager {
     linksBtn?.addEventListener('click', () => {
       const active = this.listeners.onToggleLinks();
       linksBtn.classList.toggle('active', active);
+    });
+
+    // Interactive 3D Zoom Slider & Step Buttons
+    const zoomSlider = document.getElementById('zoom-slider') as HTMLInputElement | null;
+    const zoomSliderVal = document.getElementById('zoom-slider-val');
+    const zoomOutBtn = document.getElementById('btn-zoom-out');
+    const zoomInBtn = document.getElementById('btn-zoom-in');
+
+    zoomSlider?.addEventListener('input', (e) => {
+      const val = Number((e.target as HTMLInputElement).value);
+      if (zoomSliderVal) zoomSliderVal.textContent = `${Math.round(val)}%`;
+      this.listeners.onZoomChange(val);
+    });
+
+    zoomOutBtn?.addEventListener('click', () => {
+      this.listeners.onZoomStep(-15);
+    });
+
+    zoomInBtn?.addEventListener('click', () => {
+      this.listeners.onZoomStep(+15);
     });
 
     // Legend panel collapse toggle
@@ -215,6 +237,11 @@ export class UIManager {
       this.dialog?.close();
     });
 
+    // Listen for dialog close to notify router
+    this.dialog.addEventListener('close', () => {
+      this.listeners.onCloseNodeDetails?.();
+    });
+
     // Modern Web Guidance fallback for browsers lacking native closedby light-dismiss
     if (!('closedBy' in HTMLDialogElement.prototype)) {
       this.dialog.addEventListener('click', (event: MouseEvent) => {
@@ -230,6 +257,28 @@ export class UIManager {
           this.dialog!.close();
         }
       });
+    }
+  }
+
+  public setActiveDataset(mode: 'project' | 'team'): void {
+    const projectBtn = document.getElementById('btn-view-project');
+    const teamBtn = document.getElementById('btn-view-team');
+    if (mode === 'project') {
+      projectBtn?.classList.add('active');
+      projectBtn?.setAttribute('aria-selected', 'true');
+      teamBtn?.classList.remove('active');
+      teamBtn?.setAttribute('aria-selected', 'false');
+    } else {
+      teamBtn?.classList.add('active');
+      teamBtn?.setAttribute('aria-selected', 'true');
+      projectBtn?.classList.remove('active');
+      projectBtn?.setAttribute('aria-selected', 'false');
+    }
+  }
+
+  public closeDetails(): void {
+    if (this.dialog && this.dialog.open) {
+      this.dialog.close();
     }
   }
 
@@ -323,7 +372,18 @@ export class UIManager {
     const desigEl = document.getElementById('modal-desig');
     const levelEl = document.getElementById('modal-level');
     const locationEl = document.getElementById('modal-location');
+    const empIdEl = document.getElementById('modal-empid');
     const avatarEl = document.getElementById('modal-avatar') as HTMLImageElement | null;
+    const focusBtn = document.getElementById('btn-modal-focus');
+
+    // Cosmic Insights Elements
+    const galaxyNameEl = document.getElementById('modal-galaxy-name');
+    const systemMassEl = document.getElementById('modal-system-mass');
+    const coordsEl = document.getElementById('modal-coords');
+    const distanceEl = document.getElementById('modal-distance');
+    const skillsCountEl = document.getElementById('modal-skills-count');
+    const clientsListEl = document.getElementById('modal-clients-list');
+
     const supervisorCard = document.getElementById('modal-supervisor-card');
     const supervisorNameEl = document.getElementById('modal-supervisor-name');
     const superviseeSection = document.getElementById('modal-supervisees-section');
@@ -333,9 +393,43 @@ export class UIManager {
     if (nameEl) nameEl.textContent = node.name;
     if (desigEl) desigEl.textContent = node.desig;
     if (levelEl) levelEl.textContent = `Level ${node.level}`;
+    if (empIdEl) empIdEl.textContent = `ID: ${node.empID}`;
     if (locationEl) {
       locationEl.textContent = node.locationName;
       locationEl.style.borderColor = node.locationColor;
+    }
+
+    // Populate Cosmic & Astrophysics Insights
+    if (galaxyNameEl) galaxyNameEl.textContent = node.clusterName || 'Cosmic System';
+    if (systemMassEl) {
+      systemMassEl.textContent = `${node.systemMass.toFixed(1)} M☉ (${node.isRoot ? 'Galaxy Nucleus' : `Orbit Tier ${node.depth}`})`;
+    }
+    if (coordsEl) {
+      coordsEl.textContent = `X: ${Math.round(node.x)}, Y: ${Math.round(node.y)}, Z: ${Math.round(node.z)}`;
+    }
+    if (distanceEl) {
+      distanceEl.textContent = `${Math.round(node.projZ)} units (${Math.round(node.projScale * 100)}% view size)`;
+    }
+    if (skillsCountEl) {
+      skillsCountEl.textContent = `${node.skills.length} skills`;
+    }
+
+    // Populate Clients / Accounts
+    if (clientsListEl) {
+      const clientItems = node.clients && node.clients.length > 0
+        ? node.clients
+        : ['Core Engineering', 'Enterprise Systems'];
+      clientsListEl.innerHTML = clientItems
+        .map((c) => `<span class="client-badge">${c}</span>`)
+        .join('');
+    }
+
+    // 3D Fly-to navigation button
+    if (focusBtn) {
+      focusBtn.onclick = () => {
+        this.dialog?.close();
+        this.listeners.onFocusNode3D(node.empID);
+      };
     }
 
     if (avatarEl) {
@@ -431,9 +525,19 @@ export class UIManager {
     const fpsEl = document.getElementById('hud-fps');
     const nodesEl = document.getElementById('hud-nodes');
     const zoomEl = document.getElementById('hud-zoom');
+    const zoomSliderVal = document.getElementById('zoom-slider-val');
+    const zoomSlider = document.getElementById('zoom-slider') as HTMLInputElement | null;
+
+    const zoomPercent = Math.round(zoom * 100);
 
     if (fpsEl) fpsEl.textContent = `${Math.round(fps)} FPS`;
     if (nodesEl) nodesEl.textContent = `${nodeCount} Nodes`;
-    if (zoomEl) zoomEl.textContent = `${Math.round(zoom * 100)}%`;
+    if (zoomEl) zoomEl.textContent = `${zoomPercent}%`;
+    if (zoomSliderVal) zoomSliderVal.textContent = `${zoomPercent}%`;
+
+    // Sync slider position if user is not currently dragging it
+    if (zoomSlider && document.activeElement !== zoomSlider) {
+      zoomSlider.value = Math.max(25, Math.min(280, zoomPercent)).toString();
+    }
   }
 }

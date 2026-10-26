@@ -78,15 +78,35 @@ export interface ParticleNode {
   angularVelocity: number;
   orbitIndex: number;
   
-  // World space coordinates
+  // 3D World space coordinates and velocity
   x: number;
   y: number;
+  z: number;
   vx: number;
   vy: number;
+  vz: number;
+  
+  // Physics & System Mass
+  mass: number;
+  systemMass: number;
+  clusterRootId: number;
+  clusterName: string;
+  
+  // 3D Orbital plane inclination basis vectors
+  basisU?: { x: number; y: number; z: number };
+  basisV?: { x: number; y: number; z: number };
   
   // Wander properties (for root/wandering supervisors)
   wanderAngle: number;
   wanderSpeed: number;
+  
+  // 3D Projected Screen Coordinates (computed per frame)
+  projX: number;
+  projY: number;
+  projZ: number;
+  projScale: number;
+  projRadius: number;
+  projAlpha: number;
   
   // Interaction state
   isDragging: boolean;
@@ -103,10 +123,11 @@ export interface ParticleNode {
 export interface CameraState {
   x: number;
   y: number;
-  zoom: number;
+  z: number;
   targetX: number;
   targetY: number;
-  targetZoom: number;
+  targetZ: number;
+  focalLength: number;
 }
 
 export interface SimulationFilters {

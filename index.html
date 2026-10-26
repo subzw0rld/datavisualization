@@ -27,10 +27,10 @@
       </div>
     </div>
 
-    <div class="view-switchers" role="tablist" aria-label="Dataset View">
-      <button id="btn-view-project" class="view-btn active" role="tab" aria-selected="true">Project View (6 Nodes)</button>
-      <button id="btn-view-team" class="view-btn" role="tab" aria-selected="false">Team View (64 Nodes)</button>
-    </div>
+    <nav class="view-switchers" role="tablist" aria-label="Dataset View">
+      <a id="btn-view-project" href="/project" class="view-btn active" role="tab" aria-selected="true" data-link>Project View (6 Nodes)</a>
+      <a id="btn-view-team" href="/team" class="view-btn" role="tab" aria-selected="false" data-link>Team View (64 Nodes)</a>
+    </nav>
 
     <div class="search-box">
       <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -58,6 +58,26 @@
         <option value="1.0" selected>1.0x</option>
         <option value="2.0">2.0x</option>
       </select>
+
+      <!-- Interactive 3D Zoom Slider Control -->
+      <div class="zoom-controls-wrapper" title="Interactive 3D Zoom Control">
+        <button id="btn-zoom-out" class="zoom-btn" title="Zoom Out (−15%)" aria-label="Zoom Out">−</button>
+        <div class="zoom-slider-container">
+          <input
+            type="range"
+            id="zoom-slider"
+            min="25"
+            max="280"
+            value="100"
+            step="1"
+            class="zoom-slider"
+            title="Drag to zoom in/out in 3D space"
+            aria-label="3D Zoom Level Slider"
+          />
+        </div>
+        <button id="btn-zoom-in" class="zoom-btn" title="Zoom In (+15%)" aria-label="Zoom In">+</button>
+        <span id="zoom-slider-val" class="zoom-percentage-badge">100%</span>
+      </div>
 
       <button id="btn-toggle-orbits" class="icon-btn active" title="Toggle Orbits">Orbits</button>
       <button id="btn-toggle-links" class="icon-btn active" title="Toggle Links">Links</button>
@@ -99,7 +119,7 @@
     <div class="hud-item"><span id="hud-fps">60 FPS</span></div>
     <div class="hud-item"><span id="hud-nodes">-- Nodes</span></div>
     <div class="hud-item"><span id="hud-zoom">100%</span></div>
-    <div class="hud-help">Drag nodes to fling • Drag background to pan • Scroll to zoom</div>
+    <div class="hud-help">Click particle for deep insights • Drag background to pan • Scroll to fly through 3D space</div>
   </div>
 
   <!-- Modern Top-Layer Light-Dismiss Dialog for Employee Info & Analytics -->
@@ -118,8 +138,40 @@
           <div class="badge-row">
             <span id="modal-level" class="pill-badge pill-level">Level --</span>
             <span id="modal-location" class="pill-badge pill-location">Location --</span>
+            <span id="modal-empid" class="pill-badge pill-empid">ID: --</span>
           </div>
         </div>
+        <div class="header-actions">
+          <button id="btn-modal-focus" class="btn-primary-action" title="Fly camera to this particle in 3D">
+            <span>🚀 Fly To in 3D</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3D Cosmic System & Astrophysics Metrics -->
+      <div class="cosmic-insights-bar">
+        <div class="insight-item">
+          <span class="insight-label">Cosmic System</span>
+          <span id="modal-galaxy-name" class="insight-val">--</span>
+        </div>
+        <div class="insight-item">
+          <span class="insight-label">System Mass / Inertia</span>
+          <span id="modal-system-mass" class="insight-val">--</span>
+        </div>
+        <div class="insight-item">
+          <span class="insight-label">3D Position</span>
+          <span id="modal-coords" class="insight-val">--</span>
+        </div>
+        <div class="insight-item">
+          <span class="insight-label">Viewer Distance</span>
+          <span id="modal-distance" class="insight-val">--</span>
+        </div>
+      </div>
+
+      <!-- Client Accounts / Portfolio -->
+      <div id="modal-clients-section" class="clients-section">
+        <span class="clients-label">Assigned Accounts:</span>
+        <div id="modal-clients-list" class="clients-tags"></div>
       </div>
 
       <!-- Supervisor Hierarchy Card -->
@@ -137,7 +189,10 @@
 
       <!-- Skills Matrix -->
       <div class="skills-section">
-        <h4 class="section-title">Skills & Proficiencies</h4>
+        <div class="section-title-row">
+          <h4 class="section-title">Skills & Proficiencies</h4>
+          <span id="modal-skills-count" class="badge-sub">0 skills</span>
+        </div>
         <div id="modal-skills-list" class="skills-tags-grid"></div>
       </div>
 
