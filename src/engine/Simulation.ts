@@ -11,25 +11,26 @@ export class Simulation {
   public hoveredNodeId: number | null = null;
   public draggedNode: ParticleNode | null = null;
 
-  // 3D Cosmic Space Boundaries
+  // 3D Cosmic Space Boundaries (expansive astronomical universe)
   private cosmicBounds = {
-    minX: -2200,
-    maxX: 2200,
-    minY: -1500,
-    maxY: 1500,
-    minZ: -900,
-    maxZ: 1400
+    minX: -12000,
+    maxX: 12000,
+    minY: -9000,
+    maxY: 9000,
+    minZ: -8000,
+    maxZ: 8000
   };
 
   public setBounds(width: number, height: number): void {
-    const span = Math.max(width, height) * 1.8;
+    // Dynamic boundary scales generously with screen viewport and supports large-scale universes
+    const span = Math.max(width, height) * 6.5;
     this.cosmicBounds = {
       minX: -span,
       maxX: span,
       minY: -span * 0.75,
       maxY: span * 0.75,
-      minZ: -1000,
-      maxZ: 1400
+      minZ: -Math.max(6000, span * 0.65),
+      maxZ: Math.max(6000, span * 0.65)
     };
   }
 

@@ -220,23 +220,25 @@ export class DataLoader {
       root.y = 0;
       root.z = 0;
     } else {
-      // Multiple galaxies (e.g. Team View): scatter across expansive 3D space
+      // Multiple galaxies (e.g. Team View): scatter across expansive deep-space 3D universe
       const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5 degrees
-      const clusterSpanRadius = Math.max(bounds.width, bounds.height) * (rootCount > 8 ? 2.8 : 1.1);
+      // Scales with galaxy count so 50-100+ root systems do not clutter or overlap
+      const baseGalaxyDist = Math.max(bounds.width, bounds.height) * 3.8;
+      const clusterSpanRadius = baseGalaxyDist * Math.max(1.4, Math.sqrt(rootCount / 3));
 
       roots.forEach((root, idx) => {
         const t = (idx + 0.5) / rootCount;
         const inclination = Math.acos(1 - 2 * t);
         const azimuth = goldenAngle * idx;
-        const dist = (0.35 + 0.65 * Math.sqrt(t)) * clusterSpanRadius;
+        const dist = (0.45 + 0.55 * Math.sqrt(t)) * clusterSpanRadius;
 
-        root.x = Math.sin(inclination) * Math.cos(azimuth) * dist * 1.4;
-        root.y = Math.cos(inclination) * dist * 0.95;
-        root.z = Math.sin(inclination) * Math.sin(azimuth) * dist * 0.85;
+        root.x = Math.sin(inclination) * Math.cos(azimuth) * dist * 1.5;
+        root.y = Math.cos(inclination) * dist * 1.1;
+        root.z = Math.sin(inclination) * Math.sin(azimuth) * dist * 1.3;
       });
     }
 
-    // 3D ORBITAL PLANES
+    // 3D ORBITAL PLANES & NATURAL VARIABLE ORBITAL SPACING
     roots.forEach((root, idx) => {
       const seed = (root.empID % 100) / 100;
       const tiltPitch = (seed - 0.5) * (Math.PI * 0.42);
@@ -261,15 +263,29 @@ export class DataLoader {
         const u = root.basisU!;
         const v = root.basisV!;
 
+        // In real solar systems, planets aren't constrained to a single fixed distance.
+        // We stagger orbital distances (Titius-Bode / logarithmic-like stepping + hash variance)
+        // so children under the same supervisor never cram onto a single crowded track.
+        const maxTracks = Math.min(childCount, Math.max(3, Math.ceil(Math.sqrt(childCount * 1.8))));
+
         parent.children.forEach((childId, index) => {
           const child = nodeMap.get(childId);
           if (!child) return;
 
           child.depth = depth;
           child.orbitIndex = index;
-          child.theta = index * angleStep;
+          child.theta = index * angleStep + ((child.empID % 37) / 37) * 0.45;
           child.basisU = u;
           child.basisV = v;
+
+          // Compute dynamic non-constant orbital distance:
+          // 1. Base level distance from config
+          // 2. Track tier offset (staggering multiple children into concentric orbital rings)
+          // 3. Deterministic natural eccentricity / orbital jitter per employee ID
+          const trackTier = index % maxTracks;
+          const trackOffset = trackTier * (140 + Math.min(300, childCount * 12));
+          const naturalJitter = ((child.empID * 17) % 60) - 30;
+          child.orbitalDistance = Math.max(160, child.orbitalDistance + trackOffset + naturalJitter);
 
           const massDamping = 1 / Math.pow(Math.max(1, parent.systemMass / 8), 0.2);
           const direction = index % 2 === 0 ? 1 : -0.92;

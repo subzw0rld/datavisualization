@@ -119,14 +119,14 @@ export const LEVEL_RADIUS_CONFIG: LevelRadiusConfig = {
 };
 
 export const ORBITAL_DISTANCE_CONFIG: OrbitalDistanceConfig = {
-  "4A": 480,
-  "4B": 420,
-  "5A": 360,
-  "5B": 300,
-  "6A": 240,
-  "6B": 210,
-  "7A": 170,
-  "7B": 140,
-  "8A": 110,
-  "8B": 90
+  "4A": 920,
+  "4B": 820,
+  "5A": 720,
+  "5B": 620,
+  "6A": 520,
+  "6B": 440,
+  "7A": 360,
+  "7B": 300,
+  "8A": 240,
+  "8B": 190
 };

@@ -24,8 +24,8 @@ export class Camera {
 
   public focalLength: number = 850;
 
-  public minZ: number = -16500;
-  public maxZ: number = 600;
+  public minZ: number = -32000;
+  public maxZ: number = 800;
 
   public width: number = window.innerWidth;
   public height: number = window.innerHeight;
