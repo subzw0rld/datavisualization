@@ -4,13 +4,20 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev:backend": "npm run --prefix server dev",
+    "dev:frontend": "wait-on -t 30000 http://127.0.0.1:3001/api/health && vite",
+    "dev": "concurrently -k -n \"backend,frontend\" -c \"magenta.bold,cyan.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "start": "npm run dev",
+    "build:backend": "npm run --prefix server build",
+    "build:frontend": "tsc && vite build",
+    "build": "npm run build:backend && npm run build:frontend",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "concurrently": "^10.0.6",
     "typescript": "~6.0.3",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "wait-on": "^9.5.1"
   },
   "dependencies": {
     "chart.js": "^4.6.1"

@@ -1111,3 +1111,121 @@ html, body {
   height: 180px;
   width: 100%;
 }
+
+/* ==========================================================================
+   Cosmic Loader Overlay & Orbital Animation
+   ========================================================================== */
+.cosmic-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.92) 0%, rgba(2, 4, 10, 0.98) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+  visibility: hidden;
+}
+
+.cosmic-loader-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 24px;
+}
+
+.orbital-spinner {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orbit-nucleus {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff, var(--accent-cyan));
+  box-shadow: 0 0 18px var(--accent-cyan), 0 0 32px var(--accent-cyan-glow);
+  animation: pulse-nucleus 1.8s ease-in-out infinite alternate;
+}
+
+.orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+}
+
+.orbit-ring-outer {
+  inset: 0;
+  border-top-color: var(--accent-cyan);
+  border-right-color: rgba(56, 189, 248, 0.2);
+  animation: spin-clockwise 2.2s linear infinite;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+}
+
+.orbit-ring-mid {
+  inset: 12px;
+  border-bottom-color: var(--accent-pink);
+  border-left-color: rgba(236, 72, 153, 0.2);
+  animation: spin-counter 1.6s linear infinite;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.25);
+}
+
+.orbit-ring-inner {
+  inset: 24px;
+  border-top-color: #a855f7;
+  border-left-color: rgba(168, 85, 247, 0.2);
+  animation: spin-clockwise 1.1s linear infinite;
+}
+
+@keyframes spin-clockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin-counter {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes pulse-nucleus {
+  0% { transform: scale(0.85); box-shadow: 0 0 12px var(--accent-cyan); }
+  100% { transform: scale(1.15); box-shadow: 0 0 24px var(--accent-cyan), 0 0 40px var(--accent-cyan-glow); }
+}
+
+.loader-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.loader-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, #ffffff 30%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.loader-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+

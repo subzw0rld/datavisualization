@@ -3,8 +3,7 @@
  * Handles dataset toggles, filter updates, camera controls, and chart rendering.
  */
 import Chart from 'chart.js/auto';
-import type { ParticleNode, SimulationFilters } from '../types';
-import { SKILL_DATA, LEVEL_DATA, LOCATION_DATA } from '../data/metadata';
+import type { ParticleNode, SimulationFilters, MetadataResponse } from '../types';
 
 export interface UIEventListeners {
   onDatasetChange: (mode: 'project' | 'team') => void;
@@ -38,7 +37,6 @@ export class UIManager {
   constructor(listeners: UIEventListeners) {
     this.listeners = listeners;
     this.initDOM();
-    this.initLegend();
     this.initDialog();
     this.initCharts();
   }
@@ -173,19 +171,36 @@ export class UIManager {
         searchInput?.focus();
       }
     });
+
+    // Reset filters button
+    document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
+      this.currentFilters = {
+        skillId: null,
+        levelId: null,
+        locationId: null,
+        searchQuery: ''
+      };
+      const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+      if (searchInput) searchInput.value = '';
+
+      const clearBtn = document.getElementById('search-clear-btn');
+      if (clearBtn) clearBtn.style.display = 'none';
+
+      document.querySelectorAll('.legend-chip').forEach((c) => c.classList.remove('active'));
+      this.listeners.onFilterChange(this.currentFilters);
+    });
   }
 
-  private initLegend(): void {
+  public populateLegend(metadata: MetadataResponse): void {
     const skillList = document.getElementById('legend-skill-list');
     const levelList = document.getElementById('legend-level-list');
     const locationList = document.getElementById('legend-location-list');
 
     // Populate skills
-    if (skillList) {
+    if (skillList && metadata.skills) {
       skillList.innerHTML = '';
-      for (const key of Object.keys(SKILL_DATA)) {
+      for (const [key, item] of Object.entries(metadata.skills)) {
         const id = Number(key);
-        const item = SKILL_DATA[id];
         const chip = document.createElement('button');
         chip.className = 'legend-chip';
         chip.dataset.skillId = id.toString();
@@ -206,11 +221,10 @@ export class UIManager {
     }
 
     // Populate levels
-    if (levelList) {
+    if (levelList && metadata.levels) {
       levelList.innerHTML = '';
-      for (const key of Object.keys(LEVEL_DATA)) {
+      for (const [key, item] of Object.entries(metadata.levels)) {
         const id = Number(key);
-        const item = LEVEL_DATA[id];
         const chip = document.createElement('button');
         chip.className = 'legend-chip';
         chip.dataset.levelId = id.toString();
@@ -231,11 +245,10 @@ export class UIManager {
     }
 
     // Populate locations
-    if (locationList) {
+    if (locationList && metadata.locations) {
       locationList.innerHTML = '';
-      for (const key of Object.keys(LOCATION_DATA)) {
+      for (const [key, item] of Object.entries(metadata.locations)) {
         const id = Number(key);
-        const item = LOCATION_DATA[id];
         const chip = document.createElement('button');
         chip.className = 'legend-chip';
         chip.dataset.locationId = id.toString();
@@ -254,24 +267,6 @@ export class UIManager {
         locationList.appendChild(chip);
       }
     }
-
-    // Reset filters button
-    document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
-      this.currentFilters = {
-        skillId: null,
-        levelId: null,
-        locationId: null,
-        searchQuery: ''
-      };
-      const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
-      if (searchInput) searchInput.value = '';
-
-      const clearBtn = document.getElementById('search-clear-btn');
-      if (clearBtn) clearBtn.style.display = 'none';
-
-      document.querySelectorAll('.legend-chip').forEach((c) => c.classList.remove('active'));
-      this.listeners.onFilterChange(this.currentFilters);
-    });
   }
 
   private initDialog(): void {
@@ -623,4 +618,22 @@ export class UIManager {
       zoomSlider.value = Math.max(25, Math.min(280, zoomPercent)).toString();
     }
   }
+
+  public showLoader(title: string = 'Synthesizing Galaxy', subtitle: string = 'Connecting to backend & computing orbital fields...'): void {
+    const loader = document.getElementById('cosmic-loader');
+    const titleEl = document.getElementById('loader-title');
+    const subtitleEl = document.getElementById('loader-subtitle');
+
+    if (titleEl) titleEl.textContent = title;
+    if (subtitleEl) subtitleEl.textContent = subtitle;
+    if (loader) loader.classList.add('active');
+  }
+
+  public hideLoader(): void {
+    const loader = document.getElementById('cosmic-loader');
+    if (loader) {
+      loader.classList.remove('active');
+    }
+  }
 }
+

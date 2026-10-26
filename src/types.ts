@@ -136,3 +136,15 @@ export interface SimulationFilters {
   locationId?: number | null;
   searchQuery: string;
 }
+
+export interface MetadataResponse {
+  skills: SkillCatalog;
+  levels: LevelCatalog;
+  locations: LocationCatalog;
+  configs: {
+    levelRadius: LevelRadiusConfig;
+    orbitalDistance: OrbitalDistanceConfig;
+    levelMass: Record<string, number>;
+  };
+}
+

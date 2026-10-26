@@ -154,12 +154,12 @@ class App {
     this.startLoop();
   }
 
-  private handleRouteChange(current: RouteMatch, previous: RouteMatch | null): void {
+  private async handleRouteChange(current: RouteMatch, previous: RouteMatch | null): Promise<void> {
     const datasetChanged = !previous || previous.dataset !== current.dataset;
     if (datasetChanged) {
       this.currentDataset = current.dataset;
       this.uiManager.setActiveDataset(current.dataset);
-      this.loadCurrentData();
+      await this.loadCurrentData();
     }
 
     if (current.nodeId !== null) {
@@ -178,22 +178,44 @@ class App {
     this.router.navigate(`/${mode}`);
   }
 
-  private loadCurrentData(): void {
+  private async loadCurrentData(): Promise<void> {
     const bounds = { width: window.innerWidth, height: window.innerHeight };
     this.simulation.setBounds(bounds.width, bounds.height);
 
-    const dataset = DataLoader.loadDataset(this.currentDataset, bounds, (empID) => {
-      this.spriteCache.invalidate(empID);
-    });
+    const isTeam = this.currentDataset === 'team';
+    this.uiManager.showLoader(
+      isTeam ? 'Loading Galaxy: Team View' : 'Loading Galaxy: Project View',
+      isTeam ? 'Streaming 64 nodes & establishing orbital planes...' : 'Retrieving project hierarchy & calculating physics...'
+    );
 
-    this.simulation.setData(dataset);
-    const filters = this.uiManager.getCurrentFilters();
-    this.matchingSearchNodes = this.simulation.applyFilters(filters);
-    const count = this.matchingSearchNodes.length;
-    this.currentSearchMatchIndex = 0;
-    this.uiManager.updateFilterStatus(count, filters.searchQuery, 0);
-    this.spatialGrid.update(this.simulation.nodes);
-    this.resetCamera();
+    try {
+      const dataset = await DataLoader.loadDataset(this.currentDataset, bounds, (empID) => {
+        this.spriteCache.invalidate(empID);
+      });
+
+      // Populate dynamic legend filters from backend metadata
+      if (dataset.metadata) {
+        this.uiManager.populateLegend(dataset.metadata);
+      }
+
+      this.simulation.setData(dataset);
+      const filters = this.uiManager.getCurrentFilters();
+      this.matchingSearchNodes = this.simulation.applyFilters(filters);
+      const count = this.matchingSearchNodes.length;
+      this.currentSearchMatchIndex = 0;
+      this.uiManager.updateFilterStatus(count, filters.searchQuery, 0);
+      this.spatialGrid.update(this.simulation.nodes);
+      this.resetCamera();
+    } catch (err) {
+      console.error('Error loading dataset from backend service:', err);
+      this.uiManager.showLoader('Connection Notice', 'Could not reach backend service. Please check database connection.');
+      return;
+    } finally {
+      // Smooth dismissal of loader once nodes and orbits are prepared
+      setTimeout(() => {
+        this.uiManager.hideLoader();
+      }, 250);
+    }
   }
 
   private centerOnMatchingParticle(node: ParticleNode): void {
