@@ -24,7 +24,7 @@ export class Camera {
 
   public focalLength: number = 850;
 
-  public minZ: number = -3800;
+  public minZ: number = -16500;
   public maxZ: number = 600;
 
   public width: number = window.innerWidth;
@@ -50,10 +50,10 @@ export class Camera {
   }
 
   /**
-   * Sets target zoom to an exact percentage (e.g. 25% to 300%)
+   * Sets target zoom to an exact percentage (e.g. 5% to 350%)
    */
   public setZoomPercent(percent: number): void {
-    const targetScale = Math.max(0.18, Math.min(3.5, percent / 100));
+    const targetScale = Math.max(0.05, Math.min(3.5, percent / 100));
     const newTargetZ = this.focalLength - (this.focalLength / targetScale);
     this.targetZ = Math.min(this.maxZ, Math.max(this.minZ, newTargetZ));
   }

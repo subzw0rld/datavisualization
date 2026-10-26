@@ -419,7 +419,7 @@ export class Renderer {
       const avgAlpha = (supervisor.projAlpha + node.projAlpha) / 2;
 
       // Distance LOD for links: avoid drawing thousands of sub-pixel links when zoomed far out
-      if (!isConnectedHighlight && avgScale < 0.18) {
+      if (!isConnectedHighlight && avgScale < 0.05) {
         continue;
       }
 

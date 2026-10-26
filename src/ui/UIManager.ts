@@ -615,7 +615,7 @@ export class UIManager {
 
     // Sync slider position if user is not currently dragging it
     if (zoomSlider && document.activeElement !== zoomSlider) {
-      zoomSlider.value = Math.max(25, Math.min(280, zoomPercent)).toString();
+      zoomSlider.value = Math.max(5, Math.min(280, zoomPercent)).toString();
     }
   }
 
