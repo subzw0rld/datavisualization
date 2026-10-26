@@ -13,6 +13,7 @@ A high-performance, interactive 3D orbital particle system designed to visualize
   - **Offscreen Sprite Caching**: Pre-renders complex multi-ring node graphics (core avatar, location ring, skill distribution, and proficiency level rings) into cached offscreen canvases.
   - **Spatial Hashing**: Screen-space spatial grid partitioning for fast ray-casting and hover hit-testing.
   - **Perspective Projection**: 3D world coordinates transformed to camera view space with dynamic depth scaling, focal length adjustments, and alpha falloff.
+- **Enhanced Realism**: Increased spacing between galaxy clusters for clearer visualization and more accurate orbital dynamics.
 - **Deep-Linked Client-Side Routing**:
   - Seamless navigation between views:
     - `/project` or `/#/project`: Focused sub-team visualization (6 nodes).
