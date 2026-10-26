@@ -308,7 +308,13 @@ export class Renderer {
     for (const root of roots) {
       if (root.projScale <= 0.05) continue;
 
-      const nebulaRadius = Math.max(60, (180 + root.systemMass * 4) * root.projScale);
+      // Cap the maximum nebula radius so massive clusters don't overlap and flood the background
+      const maxNebulaWorldRadius = Math.min(260, 100 + Math.sqrt(root.systemMass) * 4);
+      const nebulaRadius = Math.max(30, maxNebulaWorldRadius * root.projScale);
+
+      // Distance attenuation so distant galaxies don't produce large washouts
+      const scaleAlpha = Math.min(1.0, Math.max(0.2, root.projScale));
+
       const grad = ctx.createRadialGradient(
         root.projX,
         root.projY,
@@ -318,10 +324,10 @@ export class Renderer {
         nebulaRadius
       );
 
-      // Subtle cyan-indigo cosmic nebula cloud
-      grad.addColorStop(0, 'rgba(56, 189, 248, 0.18)');
-      grad.addColorStop(0.4, 'rgba(99, 102, 241, 0.08)');
-      grad.addColorStop(0.8, 'rgba(168, 85, 247, 0.03)');
+      // Delicate subtle cyan-indigo cosmic nebula glow (capped opacity)
+      grad.addColorStop(0, `rgba(56, 189, 248, ${0.08 * scaleAlpha})`);
+      grad.addColorStop(0.4, `rgba(99, 102, 241, ${0.04 * scaleAlpha})`);
+      grad.addColorStop(0.8, `rgba(168, 85, 247, ${0.015 * scaleAlpha})`);
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
       ctx.beginPath();
