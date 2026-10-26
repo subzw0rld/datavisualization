@@ -19,6 +19,7 @@ export interface UIEventListeners {
   onZoomChange: (percent: number) => void;
   onZoomStep: (deltaPercent: number) => void;
   onCloseNodeDetails?: () => void;
+  onCycleSearchMatch?: (direction: 1 | -1) => void;
 }
 
 export class UIManager {
@@ -57,10 +58,48 @@ export class UIManager {
       this.listeners.onDatasetChange('team');
     });
 
-    // Search input
+    // Search input & clear button & match navigation
     const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+    const clearBtn = document.getElementById('search-clear-btn');
+    const prevBtn = document.getElementById('search-prev-btn');
+    const nextBtn = document.getElementById('search-next-btn');
+
     searchInput?.addEventListener('input', (e) => {
-      this.currentFilters.searchQuery = (e.target as HTMLInputElement).value;
+      const query = (e.target as HTMLInputElement).value;
+      this.currentFilters.searchQuery = query;
+
+      if (clearBtn) {
+        clearBtn.style.display = query.length > 0 ? 'inline-flex' : 'none';
+      }
+
+      this.listeners.onFilterChange(this.currentFilters);
+    });
+
+    searchInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const direction = e.shiftKey ? -1 : 1;
+        this.listeners.onCycleSearchMatch?.(direction);
+      }
+    });
+
+    prevBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.listeners.onCycleSearchMatch?.(-1);
+    });
+
+    nextBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.listeners.onCycleSearchMatch?.(1);
+    });
+
+    clearBtn?.addEventListener('click', () => {
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+      }
+      this.currentFilters.searchQuery = '';
+      if (clearBtn) clearBtn.style.display = 'none';
       this.listeners.onFilterChange(this.currentFilters);
     });
 
@@ -227,6 +266,9 @@ export class UIManager {
       const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
       if (searchInput) searchInput.value = '';
 
+      const clearBtn = document.getElementById('search-clear-btn');
+      if (clearBtn) clearBtn.style.display = 'none';
+
       document.querySelectorAll('.legend-chip').forEach((c) => c.classList.remove('active'));
       this.listeners.onFilterChange(this.currentFilters);
     });
@@ -261,6 +303,43 @@ export class UIManager {
           this.dialog!.close();
         }
       });
+    }
+  }
+
+  public getCurrentFilters(): SimulationFilters {
+    return { ...this.currentFilters };
+  }
+
+  public updateFilterStatus(matchCount: number, searchQuery: string, currentIndex: number = 0): void {
+    const searchBox = document.querySelector('.search-box');
+    const feedbackEl = document.getElementById('search-feedback');
+    const feedbackText = document.getElementById('search-feedback-text');
+    const navControls = document.getElementById('search-nav-controls');
+    const matchBadge = document.getElementById('search-match-badge');
+
+    const cleanQuery = searchQuery.trim();
+
+    if (cleanQuery.length > 0 && matchCount === 0) {
+      searchBox?.classList.add('not-found');
+      if (feedbackEl) feedbackEl.style.display = 'flex';
+      if (feedbackText) {
+        feedbackText.textContent = `No employee found matching "${cleanQuery}"`;
+      }
+      if (navControls) navControls.style.display = 'none';
+    } else {
+      searchBox?.classList.remove('not-found');
+      if (feedbackEl) feedbackEl.style.display = 'none';
+
+      if (cleanQuery.length > 0 && matchCount > 0) {
+        if (navControls) navControls.style.display = 'inline-flex';
+        if (matchBadge) {
+          matchBadge.textContent = matchCount === 1
+            ? '1 match'
+            : `${currentIndex + 1} of ${matchCount}`;
+        }
+      } else {
+        if (navControls) navControls.style.display = 'none';
+      }
     }
   }
 

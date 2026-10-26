@@ -86,8 +86,9 @@ export class Simulation {
     }
   }
 
-  public applyFilters(filters: SimulationFilters): void {
+  public applyFilters(filters: SimulationFilters): ParticleNode[] {
     const query = filters.searchQuery.trim().toLowerCase();
+    const matchingNodes: ParticleNode[] = [];
 
     for (const node of this.nodes) {
       let matches = true;
@@ -122,7 +123,12 @@ export class Simulation {
       }
 
       node.matchesFilter = matches;
+      if (matches) {
+        matchingNodes.push(node);
+      }
     }
+
+    return matchingNodes;
   }
 
   public update(dt: number, camera: Camera): void {

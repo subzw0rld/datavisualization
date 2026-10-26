@@ -24,7 +24,7 @@ import { Renderer } from './engine/Renderer';
 import { UIManager } from './ui/UIManager';
 import { DataLoader } from './data/DataLoader';
 import { Router, type RouteMatch } from './router/Router';
-import type { ParticleNode, SimulationFilters } from './types';
+import type { ParticleNode } from './types';
 
 class App {
   private canvas: HTMLCanvasElement;
@@ -50,6 +50,11 @@ class App {
   private dragStartY: number = 0;
   private clickedCandidate: ParticleNode | null = null;
 
+  // Search match tracking for screen centering & multi-match navigation
+  private matchingSearchNodes: ParticleNode[] = [];
+  private currentSearchMatchIndex: number = 0;
+  private lastCenteredQuery: string = '';
+
   constructor() {
     const canvas = document.getElementById('particle-canvas') as HTMLCanvasElement;
     if (!canvas) throw new Error('Cannot find particle canvas');
@@ -64,7 +69,37 @@ class App {
 
     this.uiManager = new UIManager({
       onDatasetChange: (mode) => this.switchDataset(mode),
-      onFilterChange: (filters) => this.applyFilters(filters),
+      onFilterChange: (filters) => {
+        this.matchingSearchNodes = this.simulation.applyFilters(filters);
+        const count = this.matchingSearchNodes.length;
+        const query = filters.searchQuery.trim().toLowerCase();
+
+        if (query.length > 0 && count > 0) {
+          // If this is a new search query, reset match index and center the first matching particle
+          if (query !== this.lastCenteredQuery) {
+            this.currentSearchMatchIndex = 0;
+            this.lastCenteredQuery = query;
+            this.centerOnMatchingParticle(this.matchingSearchNodes[0]);
+          }
+        } else {
+          this.currentSearchMatchIndex = 0;
+          this.lastCenteredQuery = '';
+        }
+
+        this.uiManager.updateFilterStatus(count, filters.searchQuery, this.currentSearchMatchIndex);
+      },
+      onCycleSearchMatch: (direction) => {
+        if (this.matchingSearchNodes.length === 0) return;
+        const count = this.matchingSearchNodes.length;
+        this.currentSearchMatchIndex = (this.currentSearchMatchIndex + direction + count) % count;
+        const targetNode = this.matchingSearchNodes[this.currentSearchMatchIndex];
+        this.centerOnMatchingParticle(targetNode);
+        this.uiManager.updateFilterStatus(
+          count,
+          this.uiManager.getCurrentFilters().searchQuery,
+          this.currentSearchMatchIndex
+        );
+      },
       onResetCamera: () => this.resetCamera(),
       onTogglePause: () => {
         this.simulation.paused = !this.simulation.paused;
@@ -152,8 +187,22 @@ class App {
     });
 
     this.simulation.setData(dataset);
+    const filters = this.uiManager.getCurrentFilters();
+    this.matchingSearchNodes = this.simulation.applyFilters(filters);
+    const count = this.matchingSearchNodes.length;
+    this.currentSearchMatchIndex = 0;
+    this.uiManager.updateFilterStatus(count, filters.searchQuery, 0);
     this.spatialGrid.update(this.simulation.nodes);
     this.resetCamera();
+  }
+
+  private centerOnMatchingParticle(node: ParticleNode): void {
+    // Select the particle and trigger pulsing feedback
+    this.simulation.selectNode(node.empID);
+
+    // Smoothly fly camera to center the particle directly in screen view
+    const focusDistance = 420;
+    this.camera.focusOn(node.x, node.y, node.z, focusDistance);
   }
 
   private resetCamera(): void {
@@ -175,10 +224,6 @@ class App {
     } else {
       this.camera.reset(0, 0, 0, 1400);
     }
-  }
-
-  private applyFilters(filters: SimulationFilters): void {
-    this.simulation.applyFilters(filters);
   }
 
   private initEvents(): void {

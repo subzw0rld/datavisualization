@@ -32,12 +32,25 @@
       <a id="btn-view-team" href="/team" class="view-btn" role="tab" aria-selected="false" data-link>Team View (64 Nodes)</a>
     </nav>
 
-    <div class="search-box">
-      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-      <input id="search-input" type="search" placeholder="Search employee, skill, title... (Press /)" autocomplete="off" />
+    <div class="search-container">
+      <div class="search-box">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input id="search-input" type="search" placeholder="Search employee, skill, title... (Press /)" autocomplete="off" />
+        <div id="search-nav-controls" class="search-nav-controls" style="display: none;">
+          <span id="search-match-badge" class="search-match-badge" title="Matching particles">1 of 3</span>
+          <button id="search-prev-btn" class="search-nav-btn" type="button" title="Center previous matching employee (Shift+Enter)" aria-label="Previous match">▲</button>
+          <button id="search-next-btn" class="search-nav-btn" type="button" title="Center next matching employee (Enter)" aria-label="Next match">▼</button>
+        </div>
+        <button id="search-clear-btn" class="search-clear-btn" type="button" aria-label="Clear search query" style="display: none;">✕</button>
+      </div>
+      <!-- Search Feedback Message / Status -->
+      <div id="search-feedback" class="search-feedback-dropdown" role="status" aria-live="polite" style="display: none;">
+        <span class="search-feedback-icon">⚠️</span>
+        <span id="search-feedback-text" class="search-feedback-text">No matching employees found</span>
+      </div>
     </div>
 
     <div class="controls-group">
