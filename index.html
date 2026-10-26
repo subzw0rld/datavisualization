@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="High-performance orbital particle system visualizing organizational structure, skills, and hierarchies." />
+  <title>Orbital Particle System — High Performance Data Visualization</title>
+  <link rel="icon" type="image/png" href="/assets/images/donut.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <!-- Canvas Root -->
+  <div id="canvas-container">
+    <canvas id="particle-canvas"></canvas>
+  </div>
+
+  <!-- Top Glass Navigation Bar -->
+  <header class="top-nav" role="banner">
+    <div class="brand">
+      <span class="brand-glyph"></span>
+      <div class="brand-text">
+        <h1 class="brand-title">Particle Orbitals</h1>
+        <span class="brand-subtitle">Org & Skill Visualization</span>
+      </div>
+    </div>
+
+    <div class="view-switchers" role="tablist" aria-label="Dataset View">
+      <button id="btn-view-project" class="view-btn active" role="tab" aria-selected="true">Project View (6 Nodes)</button>
+      <button id="btn-view-team" class="view-btn" role="tab" aria-selected="false">Team View (64 Nodes)</button>
+    </div>
+
+    <div class="search-box">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input id="search-input" type="search" placeholder="Search employee, skill, title... (Press /)" autocomplete="off" />
+    </div>
+
+    <div class="controls-group">
+      <button id="btn-recenter" class="icon-btn" title="Recenter Camera" aria-label="Recenter Camera">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M3 12h3m12 0h3M12 3v3m0 12v3"></path>
+        </svg>
+        <span>Center</span>
+      </button>
+
+      <button id="btn-pause" class="icon-btn" title="Pause / Resume" aria-label="Pause or Resume simulation">
+        ⏸ Pause
+      </button>
+
+      <select id="speed-select" class="speed-dropdown" title="Simulation Speed" aria-label="Simulation Speed">
+        <option value="0.5">0.5x</option>
+        <option value="1.0" selected>1.0x</option>
+        <option value="2.0">2.0x</option>
+      </select>
+
+      <button id="btn-toggle-orbits" class="icon-btn active" title="Toggle Orbits">Orbits</button>
+      <button id="btn-toggle-links" class="icon-btn active" title="Toggle Links">Links</button>
+    </div>
+  </header>
+
+  <!-- Expandable Glass Legend Panel -->
+  <aside id="legend-panel" class="legend-panel" aria-label="Skill, Level and Location Legend">
+    <button id="legend-toggle" class="legend-toggle-btn" aria-label="Toggle Legend Panel">
+      <span class="legend-toggle-icon">◀</span>
+      <span class="legend-toggle-text">Legend & Filters</span>
+    </button>
+
+    <div class="legend-content">
+      <div class="legend-header">
+        <h2>Legend & Filters</h2>
+        <button id="btn-reset-filters" class="text-btn">Reset</button>
+      </div>
+
+      <div class="legend-section">
+        <h3>Skills (Click to Filter)</h3>
+        <div id="legend-skill-list" class="legend-chips-container"></div>
+      </div>
+
+      <div class="legend-section">
+        <h3>Proficiency Level</h3>
+        <div id="legend-level-list" class="legend-chips-container"></div>
+      </div>
+
+      <div class="legend-section">
+        <h3>Location</h3>
+        <div id="legend-location-list" class="legend-chips-container"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Performance HUD & Instructions -->
+  <div id="hud-bar" class="hud-bar" aria-live="polite">
+    <div class="hud-item"><span id="hud-fps">60 FPS</span></div>
+    <div class="hud-item"><span id="hud-nodes">-- Nodes</span></div>
+    <div class="hud-item"><span id="hud-zoom">100%</span></div>
+    <div class="hud-help">Drag nodes to fling • Drag background to pan • Scroll to zoom</div>
+  </div>
+
+  <!-- Modern Top-Layer Light-Dismiss Dialog for Employee Info & Analytics -->
+  <dialog id="particle-dialog" class="particle-dialog" closedby="any" aria-labelledby="modal-name">
+    <div class="dialog-inner">
+      <button id="dialog-close-btn" class="dialog-close" aria-label="Close dialog">✕</button>
+
+      <!-- Employee Header Card -->
+      <div class="employee-card-header">
+        <div class="avatar-ring">
+          <img id="modal-avatar" src="/assets/images/emp-images/avatar.png" alt="Employee Avatar" />
+        </div>
+        <div class="employee-meta">
+          <h2 id="modal-name" class="employee-name">--</h2>
+          <p id="modal-desig" class="employee-desig">--</p>
+          <div class="badge-row">
+            <span id="modal-level" class="pill-badge pill-level">Level --</span>
+            <span id="modal-location" class="pill-badge pill-location">Location --</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Supervisor Hierarchy Card -->
+      <div id="modal-supervisor-card" class="supervisor-card">
+        <span class="supervisor-label">Reports To:</span>
+        <span id="modal-supervisor-name" class="supervisor-name">--</span>
+        <span class="jump-arrow">➔</span>
+      </div>
+
+      <!-- Supervisees Section -->
+      <div id="modal-supervisees-section" class="supervisees-section">
+        <h4 class="section-title">Direct Reports</h4>
+        <div id="modal-supervisees-list" class="supervisees-grid"></div>
+      </div>
+
+      <!-- Skills Matrix -->
+      <div class="skills-section">
+        <h4 class="section-title">Skills & Proficiencies</h4>
+        <div id="modal-skills-list" class="skills-tags-grid"></div>
+      </div>
+
+      <!-- Dynamic Analytics Charts -->
+      <div class="charts-section">
+        <div class="chart-card">
+          <h4 class="chart-title">Project Revenue Breakdown ($M)</h4>
+          <div class="chart-wrapper">
+            <canvas id="chart-top-billed"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h4 class="chart-title">Delivery Performance Radar</h4>
+          <div class="chart-wrapper">
+            <canvas id="chart-status"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Entry Script -->
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
