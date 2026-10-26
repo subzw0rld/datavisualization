@@ -19,6 +19,21 @@ interface CosmicStar {
   seed: number;
 }
 
+interface Comet {
+  startX: number;
+  startY: number;
+  startZ: number;
+  targetX: number;
+  targetY: number;
+  targetZ: number;
+  progress: number; // 0 to 1
+  duration: number; // travel duration in seconds
+  tailLength: number; // tail trail factor (e.g. 0.15 - 0.35)
+  headRadius: number;
+  color: string;
+  glowColor: string;
+}
+
 export class Renderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -33,6 +48,11 @@ export class Renderer {
   // 3D Cosmic Starfield
   private stars: CosmicStar[] = [];
 
+  // Random Cosmic Comets
+  private activeComets: Comet[] = [];
+  private nextCometDelay: number = 2.0; // Seconds until next comet spawn
+  private lastSimTime: number = 0;
+
   constructor(canvas: HTMLCanvasElement, spriteCache: SpriteCache) {
     this.canvas = canvas;
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -40,7 +60,58 @@ export class Renderer {
     this.ctx = ctx;
     this.spriteCache = spriteCache;
     this.initCosmicStars();
+    this.scheduleNextComet();
     this.handleResize();
+  }
+
+  private scheduleNextComet(): void {
+    // Non-regular random interval: e.g. between 2.5s and 9.5s
+    this.nextCometDelay = 2.5 + Math.random() * 7.0;
+  }
+
+  private spawnComet(): void {
+    // Generate comets in deep cosmic background (further back so they remain faint & non-intrusive)
+    const spawnDistance = 3800 + Math.random() * 2200;
+    const angle = Math.random() * Math.PI * 2;
+    const elevation = (Math.random() - 0.5) * Math.PI * 0.6; // Vertical tilt
+
+    // Start coordinate far in deep space background
+    const startX = Math.cos(angle) * Math.cos(elevation) * spawnDistance;
+    const startY = Math.sin(elevation) * (spawnDistance * 0.7);
+    const startZ = 1200 + Math.random() * 2500; // Keep deep behind particles
+
+    // Trajectory crossing background space with subtle sweep
+    const shootDist = 3500 + Math.random() * 2000;
+    const trajectoryAngle = angle + Math.PI + (Math.random() - 0.5) * 1.6;
+    const trajectoryElev = -elevation + (Math.random() - 0.5) * 0.8;
+
+    const targetX = startX + Math.cos(trajectoryAngle) * Math.cos(trajectoryElev) * shootDist;
+    const targetY = startY + Math.sin(trajectoryElev) * shootDist;
+    const targetZ = startZ + (Math.random() - 0.5) * 600;
+
+    const colorPalettes = [
+      { color: 'rgba(224, 242, 254, 0.7)', glow: 'rgba(56, 189, 248, 0.4)' },  // Soft cyan
+      { color: 'rgba(240, 253, 244, 0.7)', glow: 'rgba(52, 211, 153, 0.35)' }, // Soft emerald
+      { color: 'rgba(250, 245, 255, 0.7)', glow: 'rgba(192, 132, 252, 0.4)' }, // Soft violet
+      { color: 'rgba(255, 251, 235, 0.7)', glow: 'rgba(251, 191, 36, 0.35)' }, // Soft warm ember
+      { color: 'rgba(255, 255, 255, 0.7)', glow: 'rgba(148, 163, 184, 0.35)' }  // Soft white/silver
+    ];
+    const palette = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
+
+    this.activeComets.push({
+      startX,
+      startY,
+      startZ,
+      targetX,
+      targetY,
+      targetZ,
+      progress: 0,
+      duration: 1.0 + Math.random() * 1.4, // Fast, swift shooting star feel
+      tailLength: 0.04 + Math.random() * 0.04, // Short subtle streak (4-8% of trajectory)
+      headRadius: 0.8 + Math.random() * 0.6, // Delicate small head
+      color: palette.color,
+      glowColor: palette.glow
+    });
   }
 
   private initCosmicStars(): void {
@@ -147,7 +218,89 @@ export class Renderer {
       ctx.globalAlpha = alpha;
       ctx.fill();
     }
+    // Update and spawn random comets at non-regular intervals
+    const dt = this.lastSimTime > 0 ? Math.min(0.1, Math.max(0.001, simTime - this.lastSimTime)) : 0.016;
+    this.lastSimTime = simTime;
+
+    this.nextCometDelay -= dt;
+    if (this.nextCometDelay <= 0) {
+      this.spawnComet();
+      this.scheduleNextComet();
+    }
+
+    // Render 3D Background Comets (between stars and nebula for authentic cosmic depth)
+    this.renderComets(ctx, camera, dt);
+
     ctx.globalAlpha = 1.0;
+  }
+
+  private renderComets(ctx: CanvasRenderingContext2D, camera: Camera, dt: number): void {
+    ctx.save();
+    for (let i = this.activeComets.length - 1; i >= 0; i--) {
+      const comet = this.activeComets[i];
+      comet.progress += dt / comet.duration;
+
+      if (comet.progress >= 1.0) {
+        this.activeComets.splice(i, 1);
+        continue;
+      }
+
+      // Smooth fade-in at launch and fade-out as it dissipates
+      const lifeAlpha = Math.sin(comet.progress * Math.PI);
+
+      // Current head position in 3D
+      const headX = comet.startX + (comet.targetX - comet.startX) * comet.progress;
+      const headY = comet.startY + (comet.targetY - comet.startY) * comet.progress;
+      const headZ = comet.startZ + (comet.targetZ - comet.startZ) * comet.progress;
+
+      // Tail end position trailing behind based on tailLength
+      const tailProgress = Math.max(0, comet.progress - comet.tailLength);
+      const tailX = comet.startX + (comet.targetX - comet.startX) * tailProgress;
+      const tailY = comet.startY + (comet.targetY - comet.startY) * tailProgress;
+      const tailZ = comet.startZ + (comet.targetZ - comet.startZ) * tailProgress;
+
+      const pHead = camera.project3D(headX, headY, headZ);
+      const pTail = camera.project3D(tailX, tailY, tailZ);
+
+      // Ensure comet is in front of camera lens and not degenerate
+      if (pHead.scale <= 0.05 || pTail.scale <= 0.05) continue;
+
+      const headScreenX = pHead.screenX;
+      const headScreenY = pHead.screenY;
+      const tailScreenX = pTail.screenX;
+      const tailScreenY = pTail.screenY;
+
+      // Draw subtle shooting comet trail
+      const grad = ctx.createLinearGradient(tailScreenX, tailScreenY, headScreenX, headScreenY);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      grad.addColorStop(0.7, comet.glowColor);
+      grad.addColorStop(1, comet.color);
+
+      // Faint background presence: alpha capped at ~0.35 - 0.45
+      const trailAlpha = Math.min(0.45, lifeAlpha * 0.45 * Math.min(1.0, pHead.scale * 1.2));
+
+      ctx.beginPath();
+      ctx.moveTo(tailScreenX, tailScreenY);
+      ctx.lineTo(headScreenX, headScreenY);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = Math.max(0.6, comet.headRadius * pHead.scale);
+      ctx.lineCap = 'round';
+      ctx.globalAlpha = trailAlpha;
+      ctx.shadowColor = comet.glowColor;
+      ctx.shadowBlur = 4;
+      ctx.stroke();
+
+      // Faint glowing comet core / head
+      ctx.beginPath();
+      const headRadius = Math.max(0.8, comet.headRadius * 0.9 * pHead.scale);
+      ctx.arc(headScreenX, headScreenY, headRadius, 0, Math.PI * 2);
+      ctx.fillStyle = comet.color;
+      ctx.globalAlpha = Math.min(0.55, lifeAlpha * 0.55);
+      ctx.shadowColor = comet.glowColor;
+      ctx.shadowBlur = 6;
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   private renderGalaxyNebulae(ctx: CanvasRenderingContext2D, roots: ParticleNode[]): void {
