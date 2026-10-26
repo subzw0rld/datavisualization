@@ -1,3 +1,10 @@
+// ------------------------------------------------------------
+// Renderer module – draws particles, orbits, links, and the cosmic background.
+// ------------------------------------------------------------
+
+/**
+ * @file Renderer.ts – core rendering engine for drawing particles, orbits, links, and background.
+ */
 import type { ParticleNode } from '../types';
 import { Camera } from './Camera';
 import { SpriteCache } from './SpriteCache';

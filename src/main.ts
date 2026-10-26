@@ -1,3 +1,21 @@
+// ------------------------------------------------------------
+// Main application entry point for the Particle System Visualizer.
+// ------------------------------------------------------------
+// This file wires together the rendering pipeline, UI controls, routing,
+// and simulation logic. It sets up the canvas, instantiates core engine
+// components, and drives the animation loop.
+
+// ------------------------------------------------------------
+// Main application entry point for the Particle System Visualizer.
+// ------------------------------------------------------------
+// This file wires together the rendering pipeline, UI controls, routing,
+// and simulation logic. It sets up the canvas, instantiates core engine
+// components, and drives the animation loop.
+
+/**
+ * @file main.ts – entry point for the Particle System Visualizer.
+ * Sets up the canvas, creates engine components, initializes UI, and starts the render loop.
+ */
 import { Camera } from './engine/Camera';
 import { SpriteCache } from './engine/SpriteCache';
 import { SpatialHashGrid } from './engine/SpatialHashGrid';

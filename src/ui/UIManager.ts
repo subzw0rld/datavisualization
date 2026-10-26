@@ -1,3 +1,7 @@
+/**
+ * @file UIManager – wires UI controls (buttons, sliders, dialogs) to the simulation engine.
+ * Handles dataset toggles, filter updates, camera controls, and chart rendering.
+ */
 import Chart from 'chart.js/auto';
 import type { ParticleNode, SimulationFilters } from '../types';
 import { SKILL_DATA, LEVEL_DATA, LOCATION_DATA } from '../data/metadata';

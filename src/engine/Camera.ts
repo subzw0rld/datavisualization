@@ -1,3 +1,11 @@
+// ------------------------------------------------------------
+// Camera module – implements a 3D perspective camera with smooth interpolation,
+// screen-space projection, and cursor-anchored zoom.
+/**
+ * @file Camera.ts – implements a 3D perspective camera with smooth interpolation and projection utilities.
+ */
+// ------------------------------------------------------------
+
 export interface ProjectedPoint {
   screenX: number;
   screenY: number;
