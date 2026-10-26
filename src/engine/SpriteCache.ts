@@ -1,31 +1,50 @@
 import type { ParticleNode } from '../types';
 
 export class SpriteCache {
-  private cache = new Map<number, HTMLCanvasElement>();
+  private nodeCache = new Map<number, HTMLCanvasElement>();
+  private templateCache = new Map<string, HTMLCanvasElement>();
   private dpr: number;
 
   constructor() {
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
   }
 
+  private getSignature(node: ParticleNode): string {
+    const skillSig = node.skills.map((s) => `${s.id}:${s.level}`).join(',');
+    return `${node.level}_${node.locationId}_${node.isSupervisor ? 1 : 0}_${skillSig}`;
+  }
+
   public getSprite(node: ParticleNode): HTMLCanvasElement {
-    let sprite = this.cache.get(node.empID);
+    // If node has custom avatar image, use dedicated node cache
+    if (node.avatarLoaded && node.avatarImg && !node.avatarUrl.endsWith('avatar.png')) {
+      let sprite = this.nodeCache.get(node.empID);
+      if (!sprite) {
+        sprite = this.renderSprite(node, true);
+        this.nodeCache.set(node.empID, sprite);
+      }
+      return sprite;
+    }
+
+    // Otherwise, reuse template cache by visual configuration signature (Level + Location + Skills)
+    const sig = this.getSignature(node);
+    let sprite = this.templateCache.get(sig);
     if (!sprite) {
-      sprite = this.renderSprite(node);
-      this.cache.set(node.empID, sprite);
+      sprite = this.renderSprite(node, false);
+      this.templateCache.set(sig, sprite);
     }
     return sprite;
   }
 
   public invalidate(empID?: number): void {
     if (empID !== undefined) {
-      this.cache.delete(empID);
+      this.nodeCache.delete(empID);
     } else {
-      this.cache.clear();
+      this.nodeCache.clear();
+      this.templateCache.clear();
     }
   }
 
-  private renderSprite(node: ParticleNode): HTMLCanvasElement {
+  private renderSprite(node: ParticleNode, useSpecificAvatar: boolean = false): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
     const radius = node.coreRadius;
     const padding = 12; // breathing room for subtle glow / outer anti-aliasing
@@ -71,7 +90,11 @@ export class SpriteCache {
     ctx.arc(cx, cy, radius - 2, 0, Math.PI * 2);
     ctx.clip();
 
-    if (node.avatarLoaded && node.avatarImg && node.avatarImg.complete && node.avatarImg.naturalWidth > 0) {
+    if (useSpecificAvatar && node.avatarLoaded && node.avatarImg && node.avatarImg.complete && node.avatarImg.naturalWidth > 0) {
+      const dSize = (radius - 2) * 2;
+      ctx.drawImage(node.avatarImg, cx - dSize / 2, cy - dSize / 2, dSize, dSize);
+    } else if (node.avatarLoaded && node.avatarImg && node.avatarImg.complete && node.avatarImg.naturalWidth > 0) {
+      // Shared default avatar
       const dSize = (radius - 2) * 2;
       ctx.drawImage(node.avatarImg, cx - dSize / 2, cy - dSize / 2, dSize, dSize);
     } else {

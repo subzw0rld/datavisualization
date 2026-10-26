@@ -412,6 +412,11 @@ export class Renderer {
       const avgScale = (supervisor.projScale + node.projScale) / 2;
       const avgAlpha = (supervisor.projAlpha + node.projAlpha) / 2;
 
+      // Distance LOD for links: avoid drawing thousands of sub-pixel links when zoomed far out
+      if (!isConnectedHighlight && avgScale < 0.18) {
+        continue;
+      }
+
       if (isConnectedHighlight) {
         ctx.strokeStyle = `rgba(56, 189, 248, ${Math.min(1.0, 0.85 * avgAlpha)})`;
         ctx.lineWidth = Math.max(1.2, 2.2 * avgScale);
@@ -480,8 +485,18 @@ export class Renderer {
       // Fast single-operation blit of pre-rendered glyph scaled to distance!
       ctx.drawImage(sprite, -halfSize, -halfSize, renderedSize, renderedSize);
 
-      // Render employee text labels (scaled to distance)
-      if (node.projScale >= 0.32 || node.isHovered || node.isSelected) {
+      // Render employee text labels with progressive distance Level-Of-Detail (LOD):
+      // - Distant particles appear as celestial bodies without cluttering the screen with thousands of text labels.
+      // - As the viewer zooms in (projScale increases), text labels smoothly reveal themselves.
+      // - Selected, hovered, or galaxy root directors always remain distinctly labeled.
+      const shouldShowName =
+        node.isHovered ||
+        node.isSelected ||
+        (node.isRoot && node.projScale >= 0.22) ||
+        (node.isSupervisor && node.projScale >= 0.42) ||
+        node.projScale >= 0.62;
+
+      if (shouldShowName) {
         const fontSize = Math.max(8, Math.min(13, Math.round(11 * Math.sqrt(node.projScale))));
         ctx.font = `500 ${fontSize}px Outfit, Inter, sans-serif`;
         ctx.textAlign = 'center';
@@ -496,7 +511,14 @@ export class Renderer {
         ctx.fillStyle = node.isSelected ? '#38bdf8' : node.isHovered ? '#ffffff' : '#94a3b8';
         ctx.fillText(node.name, 0, labelY);
 
-        if (node.projScale >= 0.55 || node.isHovered || node.isSelected) {
+        // Show designation subtext when zoomed in closer or hovered
+        const shouldShowDesig =
+          node.isHovered ||
+          node.isSelected ||
+          (node.isRoot && node.projScale >= 0.38) ||
+          node.projScale >= 0.82;
+
+        if (shouldShowDesig) {
           const subFontSize = Math.max(7, Math.min(10, Math.round(9 * Math.sqrt(node.projScale))));
           ctx.font = `400 ${subFontSize}px Outfit, Inter, sans-serif`;
           ctx.fillStyle = '#64748b';

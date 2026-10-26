@@ -1,0 +1,54 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Skill {
+  id    Int    @id
+  skill String
+  color String
+}
+
+model Level {
+  id    Int    @id
+  level String
+  color String
+}
+
+model Location {
+  id       Int    @id
+  location String
+  color    String
+}
+
+model SystemConfig {
+  key   String @id
+  value Json
+}
+
+model Employee {
+  id              Int      @id @default(autoincrement())
+  empID           Int
+  dataset         String   // 'team' | 'project'
+  name            String
+  avatar          String   @default("")
+  location        Int
+  desig           String
+  level           String
+  supervisor      Int?
+  totalSupervisee Int      @default(0)
+  nucleus         Boolean? @default(false)
+  email           String?
+  client          Json?    @default("[]")
+  skill           Json     @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([empID, dataset])
+  @@index([dataset])
+  @@index([empID])
+}

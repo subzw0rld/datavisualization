@@ -7,6 +7,7 @@ import type {
 import { ApiService } from '../services/ApiService';
 
 export class DataLoader {
+  private static sharedImageCache: Map<string, HTMLImageElement> = new Map();
   /**
    * Fetches the dataset and metadata asynchronously from the backend API,
    * then computes orbital physics and builds the particle hierarchy.
@@ -82,6 +83,7 @@ export class DataLoader {
       } else if (empID === 682143) {
         avatarUrl = `/assets/images/emp-images/me.png`;
       } else {
+        // Fallback to monogram/sprite or default avatar
         avatarUrl = `/assets/images/emp-images/avatar.png`;
       }
 
@@ -138,15 +140,24 @@ export class DataLoader {
         clients: raw.client
       };
 
-      // Load avatar image asynchronously
+      // Load avatar image asynchronously with shared image cache
       if (avatarUrl) {
-        const img = new Image();
-        img.src = avatarUrl;
-        img.onload = () => {
+        if (!DataLoader.sharedImageCache.has(avatarUrl)) {
+          const img = new Image();
+          img.src = avatarUrl;
+          DataLoader.sharedImageCache.set(avatarUrl, img);
+        }
+        const cachedImg = DataLoader.sharedImageCache.get(avatarUrl)!;
+        if (cachedImg.complete && cachedImg.naturalWidth > 0) {
           node.avatarLoaded = true;
-          node.avatarImg = img;
-          if (onAvatarLoaded) onAvatarLoaded(empID);
-        };
+          node.avatarImg = cachedImg;
+        } else {
+          cachedImg.onload = () => {
+            node.avatarLoaded = true;
+            node.avatarImg = cachedImg;
+            if (onAvatarLoaded) onAvatarLoaded(empID);
+          };
+        }
       }
 
       nodeMap.set(empID, node);
@@ -211,7 +222,7 @@ export class DataLoader {
     } else {
       // Multiple galaxies (e.g. Team View): scatter across expansive 3D space
       const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5 degrees
-      const clusterSpanRadius = Math.max(bounds.width, bounds.height) * 1.1;
+      const clusterSpanRadius = Math.max(bounds.width, bounds.height) * (rootCount > 8 ? 2.8 : 1.1);
 
       roots.forEach((root, idx) => {
         const t = (idx + 0.5) / rootCount;
@@ -219,9 +230,9 @@ export class DataLoader {
         const azimuth = goldenAngle * idx;
         const dist = (0.35 + 0.65 * Math.sqrt(t)) * clusterSpanRadius;
 
-        root.x = Math.sin(inclination) * Math.cos(azimuth) * dist * 1.3;
-        root.y = Math.cos(inclination) * dist * 0.85;
-        root.z = Math.sin(inclination) * Math.sin(azimuth) * dist * 0.75;
+        root.x = Math.sin(inclination) * Math.cos(azimuth) * dist * 1.4;
+        root.y = Math.cos(inclination) * dist * 0.95;
+        root.z = Math.sin(inclination) * Math.sin(azimuth) * dist * 0.85;
       });
     }
 

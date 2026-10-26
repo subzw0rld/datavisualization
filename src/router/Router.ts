@@ -228,7 +228,7 @@ export class Router {
   }
 
   private updateTitle(route: RouteMatch): void {
-    const viewName = route.dataset === 'team' ? 'Team View (64 Nodes)' : 'Project View (6 Nodes)';
+    const viewName = route.dataset === 'team' ? 'Team View (5,000 Nodes)' : 'Project View (6 Nodes)';
     document.title = `${viewName} — Orbital Particle System`;
   }
 

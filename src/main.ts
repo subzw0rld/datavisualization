@@ -185,7 +185,7 @@ class App {
     const isTeam = this.currentDataset === 'team';
     this.uiManager.showLoader(
       isTeam ? 'Loading Galaxy: Team View' : 'Loading Galaxy: Project View',
-      isTeam ? 'Streaming 64 nodes & establishing orbital planes...' : 'Retrieving project hierarchy & calculating physics...'
+      isTeam ? 'Streaming 5,000 nodes & establishing orbital planes...' : 'Retrieving project hierarchy & calculating physics...'
     );
 
     try {
