@@ -1,0 +1,20 @@
+{
+  "name": "orbit-people-visualization",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "prestart": "npm run build",
+    "start": "node server.mjs",
+    "test": "npm run build && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.9",
+    "pg": "^8.23.1"
+  }
+}

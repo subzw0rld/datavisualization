@@ -1,0 +1,264 @@
+{
+  "method": "Actual dist renderer with no-op Canvas; operation counts and raw pixel allocations only. No GPU, DOM layout, image rasterization, GC, or browser FPS measurement.",
+  "dataset": {
+    "nodes": 5000,
+    "roots": 20,
+    "edges": 4980,
+    "uniqueSprites": 2409,
+    "maxDepth": 2,
+    "avatars": 1
+  },
+  "uniqueSpriteMiB": {
+    "resolution05": 43.10588455200195,
+    "resolution1": 172.4235382080078,
+    "resolution25": 1077.6471138000488
+  },
+  "scenarios": [
+    {
+      "width": 1440,
+      "height": 900,
+      "camera": {
+        "scale": 0.08278083687292141,
+        "x": 132.72223032302034,
+        "y": 242.03548175417217
+      },
+      "frames": [
+        {
+          "frame": 0,
+          "visible": 5000,
+          "newSpriteCanvases": 2573,
+          "newRawPixelMiB": 46.00199890136719,
+          "cacheMiB": 23.981334686279297,
+          "stubCpuMs": 17.20987500000001,
+          "arcs": 34382,
+          "strokes": 7553,
+          "images": 5001
+        },
+        {
+          "frame": 1,
+          "visible": 5000,
+          "newSpriteCanvases": 2269,
+          "newRawPixelMiB": 40.81626510620117,
+          "cacheMiB": 23.996959686279297,
+          "stubCpuMs": 15.789582999999993,
+          "arcs": 30978,
+          "strokes": 7249,
+          "images": 5001
+        },
+        {
+          "frame": 2,
+          "visible": 5000,
+          "newSpriteCanvases": 2269,
+          "newRawPixelMiB": 40.80751037597656,
+          "cacheMiB": 23.996768951416016,
+          "stubCpuMs": 13.053832999999997,
+          "arcs": 30974,
+          "strokes": 7249,
+          "images": 5001
+        },
+        {
+          "frame": 3,
+          "visible": 5000,
+          "newSpriteCanvases": 2269,
+          "newRawPixelMiB": 40.80262756347656,
+          "cacheMiB": 23.996768951416016,
+          "stubCpuMs": 12.121208000000024,
+          "arcs": 30970,
+          "strokes": 7249,
+          "images": 5001
+        },
+        {
+          "frame": 4,
+          "visible": 5000,
+          "newSpriteCanvases": 2270,
+          "newRawPixelMiB": 40.81298828125,
+          "cacheMiB": 23.999496459960938,
+          "stubCpuMs": 12.998833999999988,
+          "arcs": 30988,
+          "strokes": 7250,
+          "images": 5001
+        },
+        {
+          "frame": 5,
+          "visible": 5000,
+          "newSpriteCanvases": 2271,
+          "newRawPixelMiB": 40.83115005493164,
+          "cacheMiB": 23.996959686279297,
+          "stubCpuMs": 13.489292000000034,
+          "arcs": 30998,
+          "strokes": 7251,
+          "images": 5001
+        }
+      ],
+      "pickMissAverageMs": 1.1002283299999993
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "camera": {
+        "scale": 0.11589317162208997,
+        "x": 201.0111224522285,
+        "y": 230.84967445584107
+      },
+      "frames": [
+        {
+          "frame": 0,
+          "visible": 5000,
+          "newSpriteCanvases": 2573,
+          "newRawPixelMiB": 46.00199890136719,
+          "cacheMiB": 23.981334686279297,
+          "stubCpuMs": 11.004957999999988,
+          "arcs": 34382,
+          "strokes": 7553,
+          "images": 5001
+        },
+        {
+          "frame": 1,
+          "visible": 5000,
+          "newSpriteCanvases": 2269,
+          "newRawPixelMiB": 40.81626510620117,
+          "cacheMiB": 23.996959686279297,
+          "stubCpuMs": 12.057583000000022,
+          "arcs": 30978,
+          "strokes": 7249,
+          "images": 5001
+        },
+        {
+          "frame": 2,
+          "visible": 5000,
+          "newSpriteCanvases": 2269,
+          "newRawPixelMiB": 40.80751037597656,
+          "cacheMiB": 23.996768951416016,
+          "stubCpuMs": 11.386624999999981,
+          "arcs": 30974,
+          "strokes": 7249,
+          "images": 5001
+        },
+        {
+          "frame": 3,
+          "visible": 5000,
+          "newSpriteCanvases": 2269,
+          "newRawPixelMiB": 40.80262756347656,
+          "cacheMiB": 23.996768951416016,
+          "stubCpuMs": 11.330458000000021,
+          "arcs": 30970,
+          "strokes": 7249,
+          "images": 5001
+        },
+        {
+          "frame": 4,
+          "visible": 5000,
+          "newSpriteCanvases": 2270,
+          "newRawPixelMiB": 40.81298828125,
+          "cacheMiB": 23.999496459960938,
+          "stubCpuMs": 11.74466700000005,
+          "arcs": 30988,
+          "strokes": 7250,
+          "images": 5001
+        },
+        {
+          "frame": 5,
+          "visible": 5000,
+          "newSpriteCanvases": 2271,
+          "newRawPixelMiB": 40.83115005493164,
+          "cacheMiB": 23.996959686279297,
+          "stubCpuMs": 15.32954099999995,
+          "arcs": 30998,
+          "strokes": 7251,
+          "images": 5001
+        }
+      ],
+      "pickMissAverageMs": 1.08654625
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "camera": {
+        "scale": 1.1,
+        "x": -2179.239923902548,
+        "y": -2776.0148141441714
+      },
+      "frames": [
+        {
+          "frame": 0,
+          "visible": 330,
+          "newSpriteCanvases": 294,
+          "newRawPixelMiB": 126.92441940307617,
+          "cacheMiB": 23.80809783935547,
+          "stubCpuMs": 3.1850839999999607,
+          "arcs": 3624,
+          "strokes": 665,
+          "images": 331
+        },
+        {
+          "frame": 1,
+          "visible": 330,
+          "newSpriteCanvases": 294,
+          "newRawPixelMiB": 126.92441940307617,
+          "cacheMiB": 23.93016815185547,
+          "stubCpuMs": 2.521084000000087,
+          "arcs": 3624,
+          "strokes": 665,
+          "images": 331
+        },
+        {
+          "frame": 2,
+          "visible": 330,
+          "newSpriteCanvases": 294,
+          "newRawPixelMiB": 126.92441940307617,
+          "cacheMiB": 23.93016815185547,
+          "stubCpuMs": 2.60516599999994,
+          "arcs": 3624,
+          "strokes": 665,
+          "images": 331
+        },
+        {
+          "frame": 3,
+          "visible": 329,
+          "newSpriteCanvases": 293,
+          "newRawPixelMiB": 126.40218734741211,
+          "cacheMiB": 23.739910125732422,
+          "stubCpuMs": 3.132541999999944,
+          "arcs": 3610,
+          "strokes": 664,
+          "images": 330
+        },
+        {
+          "frame": 4,
+          "visible": 329,
+          "newSpriteCanvases": 293,
+          "newRawPixelMiB": 126.40218734741211,
+          "cacheMiB": 23.739910125732422,
+          "stubCpuMs": 2.302000000000021,
+          "arcs": 3610,
+          "strokes": 664,
+          "images": 330
+        },
+        {
+          "frame": 5,
+          "visible": 329,
+          "newSpriteCanvases": 293,
+          "newRawPixelMiB": 126.40218734741211,
+          "cacheMiB": 23.739910125732422,
+          "stubCpuMs": 2.1371659999999792,
+          "arcs": 3610,
+          "strokes": 663,
+          "images": 330
+        }
+      ],
+      "pickMissAverageMs": 1.4313191600000004
+    }
+  ],
+  "visibility": {
+    "durationSeconds": 1800,
+    "sampleIntervalSeconds": 10,
+    "min": {
+      "seconds": 1800,
+      "visible": 5000
+    },
+    "max": {
+      "seconds": 1800,
+      "visible": 5000
+    }
+  }
+}

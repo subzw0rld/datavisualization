@@ -1,0 +1,295 @@
+{
+  "name": "project",
+  "people": [
+    {
+      "id": "163347",
+      "name": "Ratnesh Sharma",
+      "title": "Project Manager",
+      "grade": "5B",
+      "locationId": "1",
+      "avatar": "avatar.png",
+      "parentId": "607457",
+      "reportedCount": 0,
+      "skills": [
+        {
+          "id": "1",
+          "levelId": "4"
+        },
+        {
+          "id": "17",
+          "levelId": "4"
+        }
+      ]
+    },
+    {
+      "id": "163348",
+      "name": "Anil Sharma",
+      "title": "Project Manager",
+      "grade": "5B",
+      "locationId": "1",
+      "avatar": "avatar.png",
+      "parentId": "607457",
+      "reportedCount": 0,
+      "skills": [
+        {
+          "id": "1",
+          "levelId": "4"
+        },
+        {
+          "id": "17",
+          "levelId": "4"
+        }
+      ]
+    },
+    {
+      "id": "163349",
+      "name": "Nikhil Srivastava",
+      "title": "Project Manager",
+      "grade": "5B",
+      "locationId": "1",
+      "avatar": "avatar.png",
+      "parentId": "607457",
+      "reportedCount": 0,
+      "skills": [
+        {
+          "id": "1",
+          "levelId": "4"
+        },
+        {
+          "id": "17",
+          "levelId": "4"
+        }
+      ]
+    },
+    {
+      "id": "163350",
+      "name": "Vivek Govil",
+      "title": "Project Manager",
+      "grade": "5B",
+      "locationId": "1",
+      "avatar": "avatar.png",
+      "parentId": "607457",
+      "reportedCount": 0,
+      "skills": [
+        {
+          "id": "1",
+          "levelId": "4"
+        },
+        {
+          "id": "17",
+          "levelId": "4"
+        }
+      ]
+    },
+    {
+      "id": "607457",
+      "name": "Arun Anand",
+      "title": "Senior Delivery Manager",
+      "grade": "4B",
+      "locationId": "1",
+      "avatar": "avatar.png",
+      "parentId": null,
+      "reportedCount": 5,
+      "skills": [
+        {
+          "id": "1",
+          "levelId": "2"
+        },
+        {
+          "id": "17",
+          "levelId": "4"
+        }
+      ]
+    },
+    {
+      "id": "682143",
+      "name": "Subroto Mukherjee",
+      "title": "Consulting Architect",
+      "grade": "5B",
+      "locationId": "1",
+      "avatar": "avatar.png",
+      "parentId": "607457",
+      "reportedCount": 0,
+      "skills": [
+        {
+          "id": "2",
+          "levelId": "4"
+        },
+        {
+          "id": "3",
+          "levelId": "4"
+        },
+        {
+          "id": "4",
+          "levelId": "4"
+        },
+        {
+          "id": "5",
+          "levelId": "4"
+        },
+        {
+          "id": "6",
+          "levelId": "4"
+        },
+        {
+          "id": "7",
+          "levelId": "4"
+        },
+        {
+          "id": "8",
+          "levelId": "4"
+        },
+        {
+          "id": "9",
+          "levelId": "4"
+        },
+        {
+          "id": "12",
+          "levelId": "4"
+        },
+        {
+          "id": "14",
+          "levelId": "2"
+        },
+        {
+          "id": "15",
+          "levelId": "4"
+        },
+        {
+          "id": "16",
+          "levelId": "4"
+        },
+        {
+          "id": "17",
+          "levelId": "4"
+        }
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "1",
+      "label": "Project Management",
+      "color": "#FFBA08"
+    },
+    {
+      "id": "2",
+      "label": "HTML",
+      "color": "#FCA311"
+    },
+    {
+      "id": "3",
+      "label": "JS",
+      "color": "#A2AEBB"
+    },
+    {
+      "id": "4",
+      "label": "CSS",
+      "color": "#3F88C5"
+    },
+    {
+      "id": "5",
+      "label": "Angular",
+      "color": "#1C3144"
+    },
+    {
+      "id": "6",
+      "label": "React",
+      "color": "#F5D0C5"
+    },
+    {
+      "id": "7",
+      "label": "Typescript",
+      "color": "#D69F7E"
+    },
+    {
+      "id": "8",
+      "label": "Node.js",
+      "color": "#774936"
+    },
+    {
+      "id": "9",
+      "label": "Build Tools",
+      "color": "#3C0000"
+    },
+    {
+      "id": "10",
+      "label": "JAVA",
+      "color": "#CBEAA6"
+    },
+    {
+      "id": "11",
+      "label": "Spring MVC",
+      "color": "#C0D684"
+    },
+    {
+      "id": "12",
+      "label": "ES6",
+      "color": "#F3F9D2"
+    },
+    {
+      "id": "13",
+      "label": "SQL",
+      "color": "#3D0B37"
+    },
+    {
+      "id": "14",
+      "label": "MVC",
+      "color": "#63264A"
+    },
+    {
+      "id": "15",
+      "label": "Singleton",
+      "color": "#C7EDE4"
+    },
+    {
+      "id": "16",
+      "label": "RxJS",
+      "color": "#AF9AB2"
+    },
+    {
+      "id": "17",
+      "label": "Agile",
+      "color": "#820B8A"
+    }
+  ],
+  "levels": [
+    {
+      "id": "1",
+      "label": "Beginner",
+      "color": "#672A4E"
+    },
+    {
+      "id": "2",
+      "label": "Intermediate",
+      "color": "#FF0000"
+    },
+    {
+      "id": "3",
+      "label": "Advanced",
+      "color": "#507DBC"
+    },
+    {
+      "id": "4",
+      "label": "Expert",
+      "color": "#006992"
+    }
+  ],
+  "locations": [
+    {
+      "id": "1",
+      "label": "Noida Site 3 Unit 1",
+      "color": "#14213D"
+    },
+    {
+      "id": "2",
+      "label": "Noida Site 1",
+      "color": "#A9C5A0"
+    },
+    {
+      "id": "3",
+      "label": "Chennai",
+      "color": "#C6DEC6"
+    }
+  ]
+}

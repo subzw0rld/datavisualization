@@ -1,0 +1,197 @@
+{
+  "commit": "494026b1afd3a4154ec8f46ce6518a172a4f2e64",
+  "runtime": "v24.14.0",
+  "method": "Original scripts executed in Node vm with deterministic random=0.75, 1280x720 viewport and stub DOM/Canvas/Image. Operation counts and logic checks only, not FPS or GPU measurements.",
+  "datasets": [
+    {
+      "dataset": "particleData.js",
+      "nodes": 6,
+      "roots": 1,
+      "edges": 5,
+      "skillEntries": 23,
+      "avatarURLs": [
+        "avatar.png"
+      ],
+      "imageObjects": 6,
+      "missingParents": [],
+      "missingLookups": [],
+      "cycles": [],
+      "declaredChildCountMismatches": [],
+      "childEnumeratedBeforeParent": [
+        163347,
+        163348,
+        163349,
+        163350
+      ],
+      "firstFrameInvalidIds": [],
+      "secondFrameInvalidIds": [],
+      "firstDrawCalls": {
+        "beginPath": 63,
+        "moveTo": 5,
+        "lineTo": 5,
+        "stroke": 5,
+        "closePath": 63,
+        "arc": 110,
+        "fill": 58,
+        "log": 6,
+        "drawImage": 6
+      },
+      "firstFrameNonfiniteDrawCalls": 0,
+      "sourceMutated": true,
+      "reinitError": "TypeError: Cannot read properties of undefined (reading 'color')",
+      "rootMotionAfterOneFrame": [
+        {
+          "id": 607457,
+          "dx": 0,
+          "dy": 0
+        }
+      ],
+      "frameRateProbe": [
+        {
+          "frames": 60,
+          "radians": 0.3
+        },
+        {
+          "frames": 120,
+          "radians": 0.6
+        },
+        {
+          "frames": 144,
+          "radians": 0.72
+        }
+      ],
+      "translatedClickHits": false,
+      "unshiftedClickHits": true
+    },
+    {
+      "dataset": "teamData.js",
+      "nodes": 64,
+      "roots": 9,
+      "edges": 55,
+      "skillEntries": 139,
+      "avatarURLs": [
+        "avatar.png",
+        "me.png"
+      ],
+      "imageObjects": 64,
+      "missingParents": [],
+      "missingLookups": [],
+      "cycles": [],
+      "declaredChildCountMismatches": [
+        {
+          "id": 610120,
+          "declared": 1,
+          "actual": 0
+        },
+        {
+          "id": 613429,
+          "declared": 1,
+          "actual": 0
+        },
+        {
+          "id": 680097,
+          "declared": 1,
+          "actual": 0
+        },
+        {
+          "id": 682143,
+          "declared": 1,
+          "actual": 0
+        }
+      ],
+      "childEnumeratedBeforeParent": [
+        609833,
+        611406,
+        615605,
+        655609,
+        655694,
+        662775,
+        663428
+      ],
+      "firstFrameInvalidIds": [
+        615605,
+        655609,
+        662775,
+        663428
+      ],
+      "secondFrameInvalidIds": [],
+      "firstDrawCalls": {
+        "beginPath": 461,
+        "arc": 748,
+        "closePath": 461,
+        "fill": 406,
+        "log": 64,
+        "drawImage": 64,
+        "moveTo": 55,
+        "lineTo": 55,
+        "stroke": 55
+      },
+      "firstFrameNonfiniteDrawCalls": 52,
+      "sourceMutated": true,
+      "reinitError": "TypeError: Cannot read properties of undefined (reading 'color')",
+      "rootMotionAfterOneFrame": [
+        {
+          "id": 607377,
+          "dx": 0.5,
+          "dy": 0.5
+        },
+        {
+          "id": 607462,
+          "dx": 0.25,
+          "dy": 0.25
+        },
+        {
+          "id": 608237,
+          "dx": 0.1875,
+          "dy": 0.1875
+        },
+        {
+          "id": 609869,
+          "dx": 0.75,
+          "dy": 0.75
+        },
+        {
+          "id": 610120,
+          "dx": 3,
+          "dy": 3
+        },
+        {
+          "id": 613429,
+          "dx": 3,
+          "dy": 3
+        },
+        {
+          "id": 670569,
+          "dx": 0.375,
+          "dy": 0.375
+        },
+        {
+          "id": 680097,
+          "dx": 3,
+          "dy": 3
+        },
+        {
+          "id": 682143,
+          "dx": 3,
+          "dy": 3
+        }
+      ],
+      "frameRateProbe": [
+        {
+          "frames": 60,
+          "radians": 0.3
+        },
+        {
+          "frames": 120,
+          "radians": 0.6
+        },
+        {
+          "frames": 144,
+          "radians": 0.72
+        }
+      ],
+      "translatedClickHits": false,
+      "unshiftedClickHits": true
+    }
+  ]
+}
