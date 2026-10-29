@@ -149,20 +149,37 @@ async function main() {
     where: { dataset: 'team' }
   });
 
-  console.log('Generating 5,000 hierarchical team members across 20 galaxy clusters...');
+  console.log('Generating 5,000 hierarchical team members across 20 galaxy clusters (flagship cluster with 1,000 nodes)...');
   const rootsCount = 20;
-  const managersPerCluster = 10;
   const totalEmployees: any[] = [];
 
   let nextEmpID = 10001;
 
+  // Distribute 5,000 employees so that Cluster 0 is the primary flagship galaxy with 1,000 nodes (highest systemMass),
+  // while the other 19 clusters are satellite galaxies (~210 nodes each).
+  const clusterTargets: number[] = [1000];
+  const remainingNodes = 5000 - 1000;
+  const satelliteCount = rootsCount - 1;
+  const baseSat = Math.floor(remainingNodes / satelliteCount);
+  const remSat = remainingNodes % satelliteCount;
+  for (let i = 0; i < satelliteCount; i++) {
+    clusterTargets.push(baseSat + (i < remSat ? 1 : 0));
+  }
+
   for (let r = 0; r < rootsCount; r++) {
+    const clusterTarget = clusterTargets[r];
     const rootEmpID = nextEmpID++;
     const rootName = `${getRandomElement(FIRST_NAMES)} ${getRandomElement(LAST_NAMES)}`;
     const rootLoc = (r % 7) + 1;
     const clientPool = [getRandomElement(CLIENTS), getRandomElement(CLIENTS)];
 
-    // 1 Galaxy Nucleus (Managing Director)
+    // Managers count: 25 managers for the flagship 1,000-node cluster, 10 for satellites
+    const managersCount = r === 0 ? 25 : 10;
+    const icTotal = clusterTarget - 1 - managersCount;
+    const baseIcPerManager = Math.floor(icTotal / managersCount);
+    const remIc = icTotal % managersCount;
+
+    // 1 Galaxy Nucleus (Managing Director / CTO)
     totalEmployees.push({
       empID: rootEmpID,
       dataset: 'team',
@@ -172,7 +189,7 @@ async function main() {
       desig: r === 0 ? 'Chief Technology Officer' : 'Managing Director',
       level: '4A',
       supervisor: null,
-      totalSupervisee: 249,
+      totalSupervisee: clusterTarget - 1,
       nucleus: true,
       email: `${rootName.toLowerCase().replace(/[^a-z]/g, '.')}@enterprise.org`,
       client: clientPool,
@@ -182,12 +199,12 @@ async function main() {
       ]
     });
 
-    // 10 Managers per cluster
-    for (let m = 0; m < managersPerCluster; m++) {
+    // Managers per cluster
+    for (let m = 0; m < managersCount; m++) {
       const managerEmpID = nextEmpID++;
       const managerName = `${getRandomElement(FIRST_NAMES)} ${getRandomElement(LAST_NAMES)}`;
       const mgrLoc = ((rootLoc + m) % 7) + 1;
-      const icCount = m < 9 ? 24 : 23;
+      const icCount = baseIcPerManager + (m < remIc ? 1 : 0);
 
       totalEmployees.push({
         empID: managerEmpID,

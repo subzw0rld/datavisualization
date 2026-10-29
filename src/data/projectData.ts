@@ -103,7 +103,7 @@ export const PROJECT_DATA: Record<string | number, RawEmployeeDataRecord> = {
   "682143": {
     "name": "Subroto Mukherjee",
     "empID": 682143,
-    "avatar": "",
+    "avatar": "me.png",
     "location": 1,
     "desig": "Consulting Architect",
     "level": "5B",

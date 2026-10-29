@@ -1,20 +1,7 @@
-// ------------------------------------------------------------
-// Main application entry point for the Particle System Visualizer.
-// ------------------------------------------------------------
-// This file wires together the rendering pipeline, UI controls, routing,
-// and simulation logic. It sets up the canvas, instantiates core engine
-// components, and drives the animation loop.
-
-// ------------------------------------------------------------
-// Main application entry point for the Particle System Visualizer.
-// ------------------------------------------------------------
-// This file wires together the rendering pipeline, UI controls, routing,
-// and simulation logic. It sets up the canvas, instantiates core engine
-// components, and drives the animation loop.
-
 /**
  * @file main.ts – entry point for the Particle System Visualizer.
- * Sets up the canvas, creates engine components, initializes UI, and starts the render loop.
+ * Wires together the rendering pipeline, UI controls, routing, and simulation logic.
+ * Sets up the canvas, creates engine components, initializes UI, and drives the animation loop.
  */
 import { Camera } from './engine/Camera';
 import { SpriteCache } from './engine/SpriteCache';
@@ -228,24 +215,7 @@ class App {
   }
 
   private resetCamera(): void {
-    if (this.simulation.roots.length > 0) {
-      let sumX = 0;
-      let sumY = 0;
-      let sumZ = 0;
-      for (const root of this.simulation.roots) {
-        sumX += root.x;
-        sumY += root.y;
-        sumZ += root.z;
-      }
-      const avgX = sumX / this.simulation.roots.length;
-      const avgY = sumY / this.simulation.roots.length;
-      const avgZ = sumZ / this.simulation.roots.length;
-
-      const overviewDist = this.currentDataset === 'team' ? 1900 : 1250;
-      this.camera.reset(avgX, avgY, avgZ, overviewDist);
-    } else {
-      this.camera.reset(0, 0, 0, 1400);
-    }
+    this.camera.reset(0, 0, 0);
   }
 
   private initEvents(): void {

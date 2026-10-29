@@ -14,18 +14,19 @@ export interface ProjectedPoint {
 }
 
 export class Camera {
-  public x: number = 0;
-  public y: number = 0;
-  public z: number = -1200;
-
-  public targetX: number = 0;
-  public targetY: number = 0;
-  public targetZ: number = -1200;
-
   public focalLength: number = 850;
 
   public minZ: number = -32000;
   public maxZ: number = 800;
+
+  // Launch at 7% zoom: depth = focalLength / 0.07 ≈ 12142.86 -> z = focalLength - depth ≈ -11292.86
+  public x: number = 0;
+  public y: number = 0;
+  public z: number = 850 - (850 / 0.07);
+
+  public targetX: number = 0;
+  public targetY: number = 0;
+  public targetZ: number = 850 - (850 / 0.07);
 
   public width: number = window.innerWidth;
   public height: number = window.innerHeight;
@@ -67,11 +68,11 @@ export class Camera {
   }
 
   public update(dt: number): void {
-    // Smooth exponential lerp
-    const lerpSpeed = Math.min(1, dt * 9.0);
-    this.x += (this.targetX - this.x) * lerpSpeed;
-    this.y += (this.targetY - this.y) * lerpSpeed;
-    this.z += (this.targetZ - this.z) * lerpSpeed;
+    // Frame-rate independent exponential decay (CR-16)
+    const lerpFactor = 1 - Math.exp(-9.0 * dt);
+    this.x += (this.targetX - this.x) * lerpFactor;
+    this.y += (this.targetY - this.y) * lerpFactor;
+    this.z += (this.targetZ - this.z) * lerpFactor;
   }
 
   /**
@@ -187,11 +188,13 @@ export class Camera {
   }
 
   /**
-   * Resets camera to wide cosmic overview
+   * Resets camera to wide cosmic overview (default 7% zoom)
    */
-  public reset(centerX: number = 0, centerY: number = 0, centerZ: number = 0, overviewDistance: number = 1800): void {
+  public reset(centerX: number = 0, centerY: number = 0, centerZ: number = 0, overviewDistance?: number): void {
     this.targetX = centerX;
     this.targetY = centerY;
-    this.targetZ = centerZ - overviewDistance;
+    const defaultDist = (this.focalLength / 0.07) - this.focalLength;
+    const dist = overviewDistance !== undefined ? overviewDistance : defaultDist;
+    this.targetZ = centerZ - dist;
   }
 }

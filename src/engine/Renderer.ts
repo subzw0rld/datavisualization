@@ -53,6 +53,9 @@ export class Renderer {
   private nextCometDelay: number = 2.0; // Seconds until next comet spawn
   private lastSimTime: number = 0;
 
+  // Persistent sort buffer to prevent per-frame array allocations (CR-01)
+  private sortBuffer: ParticleNode[] = [];
+
   constructor(canvas: HTMLCanvasElement, spriteCache: SpriteCache) {
     this.canvas = canvas;
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -241,7 +244,11 @@ export class Renderer {
       comet.progress += dt / comet.duration;
 
       if (comet.progress >= 1.0) {
-        this.activeComets.splice(i, 1);
+        // Swap-and-pop: O(1) removal without re-indexing all subsequent elements (CR-07)
+        const last = this.activeComets.pop()!;
+        if (i < this.activeComets.length) {
+          this.activeComets[i] = last;
+        }
         continue;
       }
 
@@ -442,9 +449,15 @@ export class Renderer {
 
   private renderParticles3D(ctx: CanvasRenderingContext2D, nodes: ParticleNode[]): void {
     // 3D Depth Sorting: Draw from farthest to nearest (Painter's Algorithm)
-    const sortedNodes = [...nodes].sort((a, b) => b.projZ - a.projZ);
+    // Reuse persistent sortBuffer to eliminate per-frame array allocations (CR-01)
+    this.sortBuffer.length = nodes.length;
+    for (let i = 0; i < nodes.length; i++) {
+      this.sortBuffer[i] = nodes[i];
+    }
+    this.sortBuffer.sort((a, b) => b.projZ - a.projZ);
 
-    for (const node of sortedNodes) {
+    for (let i = 0; i < this.sortBuffer.length; i++) {
+      const node = this.sortBuffer[i];
       const sprite = this.spriteCache.getSprite(node);
       const spriteOriginalSize = sprite.width / this.dpr;
 

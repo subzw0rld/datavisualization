@@ -76,12 +76,10 @@ export class DataLoader {
       const superviseeMassBonus = (raw.totalSupervisee || 0) * 0.4;
       const mass = baseMass + superviseeMassBonus;
 
-      // Determine avatar path
+      // Determine avatar path (purely data-driven, CR-19)
       let avatarUrl = '';
       if (raw.avatar && raw.avatar.length > 0) {
         avatarUrl = `/assets/images/emp-images/${raw.avatar}`;
-      } else if (empID === 682143) {
-        avatarUrl = `/assets/images/emp-images/me.png`;
       } else {
         // Fallback to monogram/sprite or default avatar
         avatarUrl = `/assets/images/emp-images/avatar.png`;
@@ -152,11 +150,18 @@ export class DataLoader {
           node.avatarLoaded = true;
           node.avatarImg = cachedImg;
         } else {
-          cachedImg.onload = () => {
+          // Use addEventListener to support multiple nodes sharing identical avatar URL (CR-10)
+          cachedImg.addEventListener('load', () => {
             node.avatarLoaded = true;
             node.avatarImg = cachedImg;
             if (onAvatarLoaded) onAvatarLoaded(empID);
-          };
+          });
+          // Add error handler to prevent infinite retry storms and fallback to monogram (CR-15)
+          cachedImg.addEventListener('error', () => {
+            console.warn(`Failed to load avatar: ${avatarUrl}`);
+            node.avatarLoaded = true;
+            node.avatarImg = undefined;
+          });
         }
       }
 
@@ -211,6 +216,9 @@ export class DataLoader {
     });
 
     // 3D SPATIAL DISTRIBUTION
+    // Place the system with the largest systemMass at the center
+    roots.sort((a, b) => (b.systemMass || 0) - (a.systemMass || 0));
+
     const rootCount = roots.length;
 
     if (rootCount === 1) {
@@ -220,14 +228,22 @@ export class DataLoader {
       root.y = 0;
       root.z = 0;
     } else {
-      // Multiple galaxies (e.g. Team View): scatter across expansive deep-space 3D universe
+      // Multiple galaxies (e.g. Team View):
+      // The system with the largest systemMass is placed at the center (0, 0, 0)
+      roots[0].x = 0;
+      roots[0].y = 0;
+      roots[0].z = 0;
+
+      // Scatter the remaining galaxies across expansive deep space
       const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5 degrees
-      // Scales with galaxy count so 50-100+ root systems do not clutter or overlap
       const baseGalaxyDist = Math.max(bounds.width, bounds.height) * 3.8;
       const clusterSpanRadius = baseGalaxyDist * Math.max(1.4, Math.sqrt(rootCount / 3));
 
-      roots.forEach((root, idx) => {
-        const t = (idx + 0.5) / rootCount;
+      const otherRoots = roots.slice(1);
+      const otherCount = otherRoots.length;
+
+      otherRoots.forEach((root, idx) => {
+        const t = (idx + 0.5) / otherCount;
         const inclination = Math.acos(1 - 2 * t);
         const azimuth = goldenAngle * idx;
         const dist = (0.45 + 0.55 * Math.sqrt(t)) * clusterSpanRadius;
@@ -240,20 +256,26 @@ export class DataLoader {
 
     // 3D ORBITAL PLANES & NATURAL VARIABLE ORBITAL SPACING
     roots.forEach((root, idx) => {
-      const seed = (root.empID % 100) / 100;
-      const tiltPitch = (seed - 0.5) * (Math.PI * 0.42);
-      const tiltYaw = ((idx % 3) - 1) * (Math.PI * 0.35);
+      if (idx === 0) {
+        // Central cluster with highest systemMass faces directly in front (90° face-on view)
+        root.basisU = { x: 1, y: 0, z: 0 };
+        root.basisV = { x: 0, y: 1, z: 0 };
+      } else {
+        const seed = (root.empID % 100) / 100;
+        const tiltPitch = (seed - 0.5) * (Math.PI * 0.42);
+        const tiltYaw = ((idx % 3) - 1) * (Math.PI * 0.35);
 
-      const ux = Math.cos(tiltYaw);
-      const uy = 0;
-      const uz = -Math.sin(tiltYaw);
+        const ux = Math.cos(tiltYaw);
+        const uy = 0;
+        const uz = -Math.sin(tiltYaw);
 
-      const vx = Math.sin(tiltPitch) * Math.sin(tiltYaw);
-      const vy = Math.cos(tiltPitch);
-      const vz = Math.sin(tiltPitch) * Math.cos(tiltYaw);
+        const vx = Math.sin(tiltPitch) * Math.sin(tiltYaw);
+        const vy = Math.cos(tiltPitch);
+        const vz = Math.sin(tiltPitch) * Math.cos(tiltYaw);
 
-      root.basisU = { x: ux, y: uy, z: uz };
-      root.basisV = { x: vx, y: vy, z: vz };
+        root.basisU = { x: ux, y: uy, z: uz };
+        root.basisV = { x: vx, y: vy, z: vz };
+      }
 
       const setupHierarchy3D = (parent: ParticleNode, depth: number) => {
         const childCount = parent.children.length;

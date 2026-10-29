@@ -1,5 +1,10 @@
 import type { MetadataResponse, RawEmployeeDataRecord } from '../types';
 
+export interface EmployeeMutationResult {
+  success: boolean;
+  count: number;
+}
+
 export class ApiService {
   private static cachedMetadata: MetadataResponse | null = null;
 
@@ -36,7 +41,7 @@ export class ApiService {
     return response.json();
   }
 
-  public static async createEmployee(employee: RawEmployeeDataRecord & { dataset: 'project' | 'team' }): Promise<any> {
+  public static async createEmployee(employee: RawEmployeeDataRecord & { dataset: 'project' | 'team' }): Promise<RawEmployeeDataRecord> {
     const response = await fetch('/api/employees', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -50,7 +55,7 @@ export class ApiService {
     return response.json();
   }
 
-  public static async updateEmployee(empID: number, updates: Partial<RawEmployeeDataRecord> & { dataset?: 'project' | 'team' }): Promise<any> {
+  public static async updateEmployee(empID: number, updates: Partial<RawEmployeeDataRecord> & { dataset?: 'project' | 'team' }): Promise<EmployeeMutationResult> {
     const response = await fetch(`/api/employees/${empID}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -64,7 +69,7 @@ export class ApiService {
     return response.json();
   }
 
-  public static async deleteEmployee(empID: number, dataset?: 'project' | 'team'): Promise<any> {
+  public static async deleteEmployee(empID: number, dataset?: 'project' | 'team'): Promise<EmployeeMutationResult> {
     const url = dataset ? `/api/employees/${empID}?dataset=${dataset}` : `/api/employees/${empID}`;
     const response = await fetch(url, { method: 'DELETE' });
 

@@ -74,7 +74,7 @@ export class Router {
   /**
    * Update query parameters (e.g. ?node=42) while preserving or switching base route
    */
-  public updateQuery(params: Record<string, string | number | null>, options: { replace?: boolean } = {}): void {
+  public updateQuery(params: Record<string, string | number | null>, options: { replace?: boolean; silent?: boolean } = {}): void {
     if (!this.currentRoute) return;
 
     const query = new URLSearchParams(this.currentRoute.queryParams);
@@ -89,10 +89,11 @@ export class Router {
     const queryString = query.toString() ? `?${query.toString()}` : '';
     const newPath = `${this.currentRoute.rawPath}${queryString}`;
 
+    const prevRoute = this.currentRoute;
     const targetRoute: RouteMatch = {
       ...this.currentRoute,
       queryParams: query,
-      nodeId: query.has('node') ? Number(query.get('node')) : this.currentRoute.nodeId
+      nodeId: query.has('node') ? Number(query.get('node')) : null
     };
 
     if (options.replace) {
@@ -101,7 +102,8 @@ export class Router {
       window.history.pushState(null, '', newPath);
     }
 
-    this.currentRoute = targetRoute;
+    // Call setRoute to update document title and notify listeners (CR-17)
+    this.setRoute(targetRoute, prevRoute, options.silent ?? false);
   }
 
   /**

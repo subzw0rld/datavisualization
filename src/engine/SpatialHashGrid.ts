@@ -9,7 +9,10 @@ export class SpatialHashGrid {
   }
 
   public clear(): void {
-    this.grid.clear();
+    // Reuse bucket arrays to prevent GC churn
+    for (const bucket of this.grid.values()) {
+      bucket.length = 0;
+    }
   }
 
   private getKey(x: number, y: number): string {
@@ -19,7 +22,8 @@ export class SpatialHashGrid {
   }
 
   public insert(node: ParticleNode): void {
-    const key = this.getKey(node.x, node.y);
+    // Index in screen space using projected coordinates (CR-02)
+    const key = this.getKey(node.projX, node.projY);
     let bucket = this.grid.get(key);
     if (!bucket) {
       bucket = [];
@@ -37,26 +41,38 @@ export class SpatialHashGrid {
 
   /**
    * 3D Ray-cast / Screen-space hit test:
-   * Finds the particle underneath (screenX, screenY) in screen coordinates.
+   * Finds the particle underneath (screenX, screenY) using screen-space spatial hash buckets (CR-02).
    * If particles overlap along line of sight, picks the one closest to the viewer (smallest depth projZ).
    */
-  public queryScreenPoint(screenX: number, screenY: number, nodes: ParticleNode[]): ParticleNode | null {
+  public queryScreenPoint(screenX: number, screenY: number, _nodes?: ParticleNode[]): ParticleNode | null {
+    const cx = Math.floor(screenX / this.cellSize);
+    const cy = Math.floor(screenY / this.cellSize);
+
     let closestNode: ParticleNode | null = null;
     let minDepth = Infinity;
 
-    for (let i = 0; i < nodes.length; i++) {
-      const node = nodes[i];
-      const dx = screenX - node.projX;
-      const dy = screenY - node.projY;
-      const distSq = dx * dx + dy * dy;
+    // Check 3x3 neighboring cells for O(1) hit testing
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const key = `${cx + dx}:${cy + dy}`;
+        const bucket = this.grid.get(key);
+        if (!bucket || bucket.length === 0) continue;
 
-      // Generous hit radius for seamless clicking on small/distant nodes
-      const hitRadius = Math.max(16, node.projRadius + 6);
+        for (let i = 0; i < bucket.length; i++) {
+          const node = bucket[i];
+          const ndx = screenX - node.projX;
+          const ndy = screenY - node.projY;
+          const distSq = ndx * ndx + ndy * ndy;
 
-      if (distSq <= hitRadius * hitRadius) {
-        if (node.projZ < minDepth) {
-          minDepth = node.projZ;
-          closestNode = node;
+          // Generous hit radius for seamless clicking on small/distant nodes
+          const hitRadius = Math.max(16, node.projRadius + 6);
+
+          if (distSq <= hitRadius * hitRadius) {
+            if (node.projZ < minDepth) {
+              minDepth = node.projZ;
+              closestNode = node;
+            }
+          }
         }
       }
     }

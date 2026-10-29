@@ -44,20 +44,37 @@ export class Simulation {
   }
 
   public selectNode(empID: number | null): void {
-    this.selectedNodeId = empID;
-    this.nodes.forEach((n) => {
-      n.isSelected = n.empID === empID;
-      if (n.isSelected) {
-        n.pulseTimer = 0;
+    if (this.selectedNodeId !== null) {
+      const prev = this.nodeMap.get(this.selectedNodeId);
+      if (prev) {
+        prev.isSelected = false;
       }
-    });
+    }
+    this.selectedNodeId = empID;
+    if (empID !== null) {
+      const next = this.nodeMap.get(empID);
+      if (next) {
+        next.isSelected = true;
+        next.pulseTimer = 0;
+      }
+    }
   }
 
   public hoverNode(empID: number | null): void {
+    if (this.hoveredNodeId === empID) return;
+    if (this.hoveredNodeId !== null) {
+      const prev = this.nodeMap.get(this.hoveredNodeId);
+      if (prev) {
+        prev.isHovered = false;
+      }
+    }
     this.hoveredNodeId = empID;
-    this.nodes.forEach((n) => {
-      n.isHovered = n.empID === empID;
-    });
+    if (empID !== null) {
+      const next = this.nodeMap.get(empID);
+      if (next) {
+        next.isHovered = true;
+      }
+    }
   }
 
   public startDrag(node: ParticleNode): void {

@@ -34,6 +34,36 @@ export class UIManager {
   private topBilledChart: Chart | null = null;
   private statusChart: Chart | null = null;
 
+  // Cached DOM elements to eliminate repeated getElementById queries (CR-12)
+  private hudFps: HTMLElement | null = null;
+  private hudNodes: HTMLElement | null = null;
+  private hudZoom: HTMLElement | null = null;
+  private zoomSliderVal: HTMLElement | null = null;
+  private zoomSlider: HTMLInputElement | null = null;
+
+  private loader: HTMLElement | null = null;
+  private loaderTitle: HTMLElement | null = null;
+  private loaderSubtitle: HTMLElement | null = null;
+
+  private modalName: HTMLElement | null = null;
+  private modalDesig: HTMLElement | null = null;
+  private modalLevel: HTMLElement | null = null;
+  private modalLocation: HTMLElement | null = null;
+  private modalEmpId: HTMLElement | null = null;
+  private modalAvatar: HTMLImageElement | null = null;
+  private modalFocusBtn: HTMLElement | null = null;
+  private modalGalaxyName: HTMLElement | null = null;
+  private modalSystemMass: HTMLElement | null = null;
+  private modalCoords: HTMLElement | null = null;
+  private modalDistance: HTMLElement | null = null;
+  private modalSkillsCount: HTMLElement | null = null;
+  private modalClientsList: HTMLElement | null = null;
+  private modalSupervisorCard: HTMLElement | null = null;
+  private modalSupervisorName: HTMLElement | null = null;
+  private modalSuperviseeSection: HTMLElement | null = null;
+  private modalSuperviseeList: HTMLElement | null = null;
+  private modalSkillsList: HTMLElement | null = null;
+
   constructor(listeners: UIEventListeners) {
     this.listeners = listeners;
     this.initDOM();
@@ -42,6 +72,17 @@ export class UIManager {
   }
 
   private initDOM(): void {
+    // Cache HUD & Loader DOM references (CR-12)
+    this.hudFps = document.getElementById('hud-fps');
+    this.hudNodes = document.getElementById('hud-nodes');
+    this.hudZoom = document.getElementById('hud-zoom');
+    this.zoomSliderVal = document.getElementById('zoom-slider-val');
+    this.zoomSlider = document.getElementById('zoom-slider') as HTMLInputElement | null;
+
+    this.loader = document.getElementById('cosmic-loader');
+    this.loaderTitle = document.getElementById('loader-title');
+    this.loaderSubtitle = document.getElementById('loader-subtitle');
+
     // Mode toggles
     const projectBtn = document.getElementById('btn-view-project');
     const teamBtn = document.getElementById('btn-view-team');
@@ -191,87 +232,87 @@ export class UIManager {
     });
   }
 
+  private populateFilterGroup(
+    container: HTMLElement | null,
+    items: Record<string, { label: string; color: string }>,
+    filterKey: 'skillId' | 'levelId' | 'locationId'
+  ): void {
+    if (!container || !items) return;
+    container.innerHTML = '';
+    for (const [key, item] of Object.entries(items)) {
+      const id = Number(key);
+      const chip = document.createElement('button');
+      chip.className = 'legend-chip';
+      chip.dataset[filterKey] = id.toString();
+      chip.innerHTML = `<span class="legend-color-dot" style="background-color: ${item.color}"></span><span>${item.label}</span>`;
+      chip.addEventListener('click', () => {
+        if (this.currentFilters[filterKey] === id) {
+          this.currentFilters[filterKey] = null;
+          chip.classList.remove('active');
+        } else {
+          container.querySelectorAll('.legend-chip').forEach((c) => c.classList.remove('active'));
+          this.currentFilters[filterKey] = id;
+          chip.classList.add('active');
+        }
+        this.listeners.onFilterChange(this.currentFilters);
+      });
+      container.appendChild(chip);
+    }
+  }
+
   public populateLegend(metadata: MetadataResponse): void {
     const skillList = document.getElementById('legend-skill-list');
     const levelList = document.getElementById('legend-level-list');
     const locationList = document.getElementById('legend-location-list');
 
-    // Populate skills
-    if (skillList && metadata.skills) {
-      skillList.innerHTML = '';
+    if (metadata.skills) {
+      const skillItems: Record<string, { label: string; color: string }> = {};
       for (const [key, item] of Object.entries(metadata.skills)) {
-        const id = Number(key);
-        const chip = document.createElement('button');
-        chip.className = 'legend-chip';
-        chip.dataset.skillId = id.toString();
-        chip.innerHTML = `<span class="legend-color-dot" style="background-color: ${item.color}"></span><span>${item.skill}</span>`;
-        chip.addEventListener('click', () => {
-          if (this.currentFilters.skillId === id) {
-            this.currentFilters.skillId = null;
-            chip.classList.remove('active');
-          } else {
-            skillList.querySelectorAll('.legend-chip').forEach((c) => c.classList.remove('active'));
-            this.currentFilters.skillId = id;
-            chip.classList.add('active');
-          }
-          this.listeners.onFilterChange(this.currentFilters);
-        });
-        skillList.appendChild(chip);
+        skillItems[key] = { label: item.skill, color: item.color };
       }
+      this.populateFilterGroup(skillList, skillItems, 'skillId');
     }
 
-    // Populate levels
-    if (levelList && metadata.levels) {
-      levelList.innerHTML = '';
+    if (metadata.levels) {
+      const levelItems: Record<string, { label: string; color: string }> = {};
       for (const [key, item] of Object.entries(metadata.levels)) {
-        const id = Number(key);
-        const chip = document.createElement('button');
-        chip.className = 'legend-chip';
-        chip.dataset.levelId = id.toString();
-        chip.innerHTML = `<span class="legend-color-dot" style="background-color: ${item.color}"></span><span>${item.level}</span>`;
-        chip.addEventListener('click', () => {
-          if (this.currentFilters.levelId === id) {
-            this.currentFilters.levelId = null;
-            chip.classList.remove('active');
-          } else {
-            levelList.querySelectorAll('.legend-chip').forEach((c) => c.classList.remove('active'));
-            this.currentFilters.levelId = id;
-            chip.classList.add('active');
-          }
-          this.listeners.onFilterChange(this.currentFilters);
-        });
-        levelList.appendChild(chip);
+        levelItems[key] = { label: item.level, color: item.color };
       }
+      this.populateFilterGroup(levelList, levelItems, 'levelId');
     }
 
-    // Populate locations
-    if (locationList && metadata.locations) {
-      locationList.innerHTML = '';
+    if (metadata.locations) {
+      const locationItems: Record<string, { label: string; color: string }> = {};
       for (const [key, item] of Object.entries(metadata.locations)) {
-        const id = Number(key);
-        const chip = document.createElement('button');
-        chip.className = 'legend-chip';
-        chip.dataset.locationId = id.toString();
-        chip.innerHTML = `<span class="legend-color-dot" style="background-color: ${item.color}"></span><span>${item.location}</span>`;
-        chip.addEventListener('click', () => {
-          if (this.currentFilters.locationId === id) {
-            this.currentFilters.locationId = null;
-            chip.classList.remove('active');
-          } else {
-            locationList.querySelectorAll('.legend-chip').forEach((c) => c.classList.remove('active'));
-            this.currentFilters.locationId = id;
-            chip.classList.add('active');
-          }
-          this.listeners.onFilterChange(this.currentFilters);
-        });
-        locationList.appendChild(chip);
+        locationItems[key] = { label: item.location, color: item.color };
       }
+      this.populateFilterGroup(locationList, locationItems, 'locationId');
     }
   }
 
   private initDialog(): void {
     this.dialog = document.getElementById('particle-dialog') as HTMLDialogElement | null;
     if (!this.dialog) return;
+
+    // Cache dialog element references (CR-12)
+    this.modalName = document.getElementById('modal-name');
+    this.modalDesig = document.getElementById('modal-desig');
+    this.modalLevel = document.getElementById('modal-level');
+    this.modalLocation = document.getElementById('modal-location');
+    this.modalEmpId = document.getElementById('modal-empid');
+    this.modalAvatar = document.getElementById('modal-avatar') as HTMLImageElement | null;
+    this.modalFocusBtn = document.getElementById('btn-modal-focus');
+    this.modalGalaxyName = document.getElementById('modal-galaxy-name');
+    this.modalSystemMass = document.getElementById('modal-system-mass');
+    this.modalCoords = document.getElementById('modal-coords');
+    this.modalDistance = document.getElementById('modal-distance');
+    this.modalSkillsCount = document.getElementById('modal-skills-count');
+    this.modalClientsList = document.getElementById('modal-clients-list');
+    this.modalSupervisorCard = document.getElementById('modal-supervisor-card');
+    this.modalSupervisorName = document.getElementById('modal-supervisor-name');
+    this.modalSuperviseeSection = document.getElementById('modal-supervisees-section');
+    this.modalSuperviseeList = document.getElementById('modal-supervisees-list');
+    this.modalSkillsList = document.getElementById('modal-skills-list');
 
     // Close button
     document.getElementById('dialog-close-btn')?.addEventListener('click', () => {
@@ -283,19 +324,11 @@ export class UIManager {
       this.listeners.onCloseNodeDetails?.();
     });
 
-    // Modern Web Guidance fallback for browsers lacking native closedby light-dismiss
+    // Modern Web Guidance backdrop click dismissal (CR-22)
     if (!('closedBy' in HTMLDialogElement.prototype)) {
       this.dialog.addEventListener('click', (event: MouseEvent) => {
-        if (event.target !== this.dialog) return;
-        const rect = this.dialog!.getBoundingClientRect();
-        const isDialogContent =
-          rect.top <= event.clientY &&
-          event.clientY <= rect.top + rect.height &&
-          rect.left <= event.clientX &&
-          event.clientX <= rect.left + rect.width;
-
-        if (!isDialogContent) {
-          this.dialog!.close();
+        if (event.target === this.dialog) {
+          this.dialog?.close();
         }
       });
     }
@@ -445,98 +478,76 @@ export class UIManager {
   public showNodeDetails(node: ParticleNode, nodeMap: Map<number, ParticleNode>): void {
     if (!this.dialog) return;
 
-    // Populate details
-    const nameEl = document.getElementById('modal-name');
-    const desigEl = document.getElementById('modal-desig');
-    const levelEl = document.getElementById('modal-level');
-    const locationEl = document.getElementById('modal-location');
-    const empIdEl = document.getElementById('modal-empid');
-    const avatarEl = document.getElementById('modal-avatar') as HTMLImageElement | null;
-    const focusBtn = document.getElementById('btn-modal-focus');
-
-    // Cosmic Insights Elements
-    const galaxyNameEl = document.getElementById('modal-galaxy-name');
-    const systemMassEl = document.getElementById('modal-system-mass');
-    const coordsEl = document.getElementById('modal-coords');
-    const distanceEl = document.getElementById('modal-distance');
-    const skillsCountEl = document.getElementById('modal-skills-count');
-    const clientsListEl = document.getElementById('modal-clients-list');
-
-    const supervisorCard = document.getElementById('modal-supervisor-card');
-    const supervisorNameEl = document.getElementById('modal-supervisor-name');
-    const superviseeSection = document.getElementById('modal-supervisees-section');
-    const superviseeList = document.getElementById('modal-supervisees-list');
-    const skillsList = document.getElementById('modal-skills-list');
-
-    if (nameEl) nameEl.textContent = node.name;
-    if (desigEl) desigEl.textContent = node.desig;
-    if (levelEl) levelEl.textContent = `Level ${node.level}`;
-    if (empIdEl) empIdEl.textContent = `ID: ${node.empID}`;
-    if (locationEl) {
-      locationEl.textContent = node.locationName;
-      locationEl.style.borderColor = node.locationColor;
+    // Populate details using cached DOM references (CR-12)
+    if (this.modalName) this.modalName.textContent = node.name;
+    if (this.modalDesig) this.modalDesig.textContent = node.desig;
+    if (this.modalLevel) this.modalLevel.textContent = `Level ${node.level}`;
+    if (this.modalEmpId) this.modalEmpId.textContent = `ID: ${node.empID}`;
+    if (this.modalLocation) {
+      this.modalLocation.textContent = node.locationName;
+      this.modalLocation.style.borderColor = node.locationColor;
     }
 
     // Populate Cosmic & Astrophysics Insights
-    if (galaxyNameEl) galaxyNameEl.textContent = node.clusterName || 'Cosmic System';
-    if (systemMassEl) {
-      systemMassEl.textContent = `${node.systemMass.toFixed(1)} M☉ (${node.isRoot ? 'Galaxy Nucleus' : `Orbit Tier ${node.depth}`})`;
+    if (this.modalGalaxyName) this.modalGalaxyName.textContent = node.clusterName || 'Cosmic System';
+    if (this.modalSystemMass) {
+      this.modalSystemMass.textContent = `${node.systemMass.toFixed(1)} M☉ (${node.isRoot ? 'Galaxy Nucleus' : `Orbit Tier ${node.depth}`})`;
     }
-    if (coordsEl) {
-      coordsEl.textContent = `X: ${Math.round(node.x)}, Y: ${Math.round(node.y)}, Z: ${Math.round(node.z)}`;
+    if (this.modalCoords) {
+      this.modalCoords.textContent = `X: ${Math.round(node.x)}, Y: ${Math.round(node.y)}, Z: ${Math.round(node.z)}`;
     }
-    if (distanceEl) {
-      distanceEl.textContent = `${Math.round(node.projZ)} units (${Math.round(node.projScale * 100)}% view size)`;
+    if (this.modalDistance) {
+      this.modalDistance.textContent = `${Math.round(node.projZ)} units (${Math.round(node.projScale * 100)}% view size)`;
     }
-    if (skillsCountEl) {
-      skillsCountEl.textContent = `${node.skills.length} skills`;
+    if (this.modalSkillsCount) {
+      this.modalSkillsCount.textContent = `${node.skills.length} skills`;
     }
 
     // Populate Clients / Accounts
-    if (clientsListEl) {
+    if (this.modalClientsList) {
       const clientItems = node.clients && node.clients.length > 0
         ? node.clients
         : ['Core Engineering', 'Enterprise Systems'];
-      clientsListEl.innerHTML = clientItems
+      this.modalClientsList.innerHTML = clientItems
         .map((c) => `<span class="client-badge">${c}</span>`)
         .join('');
     }
 
     // 3D Fly-to navigation button
-    if (focusBtn) {
-      focusBtn.onclick = () => {
+    if (this.modalFocusBtn) {
+      this.modalFocusBtn.onclick = () => {
         this.dialog?.close();
         this.listeners.onFocusNode3D(node.empID);
       };
     }
 
-    if (avatarEl) {
-      avatarEl.src = node.avatarUrl || '/assets/images/emp-images/avatar.png';
-      avatarEl.onerror = () => {
-        avatarEl.src = '/assets/images/emp-images/avatar.png';
+    if (this.modalAvatar) {
+      this.modalAvatar.src = node.avatarUrl || '/assets/images/emp-images/avatar.png';
+      this.modalAvatar.onerror = () => {
+        if (this.modalAvatar) this.modalAvatar.src = '/assets/images/emp-images/avatar.png';
       };
     }
 
     // Supervisor details
     if (node.supervisorId && nodeMap.has(node.supervisorId)) {
       const supervisor = nodeMap.get(node.supervisorId)!;
-      if (supervisorCard && supervisorNameEl) {
-        supervisorCard.style.display = 'flex';
-        supervisorNameEl.textContent = supervisor.name;
-        supervisorCard.onclick = () => {
+      if (this.modalSupervisorCard && this.modalSupervisorName) {
+        this.modalSupervisorCard.style.display = 'flex';
+        this.modalSupervisorName.textContent = supervisor.name;
+        this.modalSupervisorCard.onclick = () => {
           this.dialog?.close();
           this.listeners.onSelectNode(supervisor.empID);
         };
       }
-    } else if (supervisorCard) {
-      supervisorCard.style.display = 'none';
+    } else if (this.modalSupervisorCard) {
+      this.modalSupervisorCard.style.display = 'none';
     }
 
     // Supervisees list
-    if (superviseeSection && superviseeList) {
+    if (this.modalSuperviseeSection && this.modalSuperviseeList) {
       if (node.children.length > 0) {
-        superviseeSection.style.display = 'block';
-        superviseeList.innerHTML = '';
+        this.modalSuperviseeSection.style.display = 'block';
+        this.modalSuperviseeList.innerHTML = '';
         for (const childId of node.children) {
           const child = nodeMap.get(childId);
           if (!child) continue;
@@ -547,16 +558,16 @@ export class UIManager {
             this.dialog?.close();
             this.listeners.onSelectNode(child.empID);
           };
-          superviseeList.appendChild(chip);
+          this.modalSuperviseeList.appendChild(chip);
         }
       } else {
-        superviseeSection.style.display = 'none';
+        this.modalSuperviseeSection.style.display = 'none';
       }
     }
 
     // Skills breakdown
-    if (skillsList) {
-      skillsList.innerHTML = '';
+    if (this.modalSkillsList) {
+      this.modalSkillsList.innerHTML = '';
       for (const s of node.skills) {
         const item = document.createElement('div');
         item.className = 'skill-tag';
@@ -564,7 +575,7 @@ export class UIManager {
           <span class="skill-name" style="border-left: 3px solid ${s.color}">${s.name}</span>
           <span class="skill-level" style="background-color: ${s.levelColor}">${s.levelName}</span>
         `;
-        skillsList.appendChild(item);
+        this.modalSkillsList.appendChild(item);
       }
     }
 
@@ -600,39 +611,28 @@ export class UIManager {
   }
 
   public updateHUD(fps: number, nodeCount: number, zoom: number): void {
-    const fpsEl = document.getElementById('hud-fps');
-    const nodesEl = document.getElementById('hud-nodes');
-    const zoomEl = document.getElementById('hud-zoom');
-    const zoomSliderVal = document.getElementById('zoom-slider-val');
-    const zoomSlider = document.getElementById('zoom-slider') as HTMLInputElement | null;
-
     const zoomPercent = Math.round(zoom * 100);
 
-    if (fpsEl) fpsEl.textContent = `${Math.round(fps)} FPS`;
-    if (nodesEl) nodesEl.textContent = `${nodeCount} Nodes`;
-    if (zoomEl) zoomEl.textContent = `${zoomPercent}%`;
-    if (zoomSliderVal) zoomSliderVal.textContent = `${zoomPercent}%`;
+    if (this.hudFps) this.hudFps.textContent = `${Math.round(fps)} FPS`;
+    if (this.hudNodes) this.hudNodes.textContent = `${nodeCount} Nodes`;
+    if (this.hudZoom) this.hudZoom.textContent = `${zoomPercent}%`;
+    if (this.zoomSliderVal) this.zoomSliderVal.textContent = `${zoomPercent}%`;
 
     // Sync slider position if user is not currently dragging it
-    if (zoomSlider && document.activeElement !== zoomSlider) {
-      zoomSlider.value = Math.max(5, Math.min(280, zoomPercent)).toString();
+    if (this.zoomSlider && document.activeElement !== this.zoomSlider) {
+      this.zoomSlider.value = Math.max(5, Math.min(280, zoomPercent)).toString();
     }
   }
 
   public showLoader(title: string = 'Synthesizing Galaxy', subtitle: string = 'Connecting to backend & computing orbital fields...'): void {
-    const loader = document.getElementById('cosmic-loader');
-    const titleEl = document.getElementById('loader-title');
-    const subtitleEl = document.getElementById('loader-subtitle');
-
-    if (titleEl) titleEl.textContent = title;
-    if (subtitleEl) subtitleEl.textContent = subtitle;
-    if (loader) loader.classList.add('active');
+    if (this.loaderTitle) this.loaderTitle.textContent = title;
+    if (this.loaderSubtitle) this.loaderSubtitle.textContent = subtitle;
+    if (this.loader) this.loader.classList.add('active');
   }
 
   public hideLoader(): void {
-    const loader = document.getElementById('cosmic-loader');
-    if (loader) {
-      loader.classList.remove('active');
+    if (this.loader) {
+      this.loader.classList.remove('active');
     }
   }
 }
