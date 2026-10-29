@@ -1,6 +1,6 @@
 import type {Node} from './model.js';
 import {Simulation, hash, segmentIntersectsRect, type Camera, type Bounds} from './simulation.js';
-export class Artwork {
+class Artwork {
   private images=new Map<string,HTMLImageElement>();
   private signatures=new Map<Node,string>();
   private cache=new Map<string,{canvas:HTMLCanvasElement; bytes:number;used:number}>();
@@ -71,7 +71,7 @@ export class Artwork {
   destroy():void {this.disposed=true;this.clear();this.images.clear();this.signatures.clear();}
   get memoryMiB():number {return this.bytes/1048576;}
 }
-export interface RenderOptions {selected:number;hovered:number;matches:Set<number>|null;orbits:boolean; pulse:number}
+interface RenderOptions {selected:number;hovered:number;matches:Set<number>|null;orbits:boolean; pulse:number}
 export class Renderer {
   private ctx:CanvasRenderingContext2D;
   readonly artwork:Artwork;

@@ -1,6 +1,6 @@
 import type {Graph} from './model.js';
 export interface Bounds {x: number; y: number; width: number; height: number}
-export interface Projection {x:number;y:number;scale:number}
+interface Projection {x:number;y:number;scale:number}
 /** Positive Z points toward the viewer; geometry before the near plane is clipped. */
 export function perspectiveScale(z:number,focalLength:number):number {
   const distance=focalLength-z;
