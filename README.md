@@ -2,6 +2,19 @@
 
 A local TypeScript + Canvas 2D rebuild of [subzw0rld/datavisualization](https://github.com/subzw0rld/datavisualization/tree/494026b1afd3a4154ec8f46ce6518a172a4f2e64). Both original datasets and their ring meanings are retained. The original repository is untouched; the analysis is in `reports/particle-system-analysis.md`.
 
+Orbit turns a reporting hierarchy into a moving constellation. People orbit their supervisors in three-dimensional simulation space, then appear on a two-dimensional canvas through perspective projection. This gives the scene convincing depth while keeping names, relationships, and the directory usable.
+
+## Features
+
+- **Spatial hierarchy:** People orbit their parent nodes on inclined, rotated paths. Root groups drift together, keeping reporting connectors attached as the scene moves.
+- **Depth cues:** Perspective changes apparent size, and depth sorting puts nearer people in front. Optional orbit paths are projected from the same 3D positions. Star and grid layers shift at different rates while dragging to add parallax.
+- **Fly in 3D:** Choose a root system from the header menu. The camera eases out to an overview, travels to the destination, then zooms in. The flight takes about 8.7 seconds; reduced-motion preference makes the transition immediate. Dragging, zooming, fitting, or focusing a person cancels an active flight.
+- **Inspectable people:** Select a node or search the directory to see real skills, proficiency, location, supervisor, and direct reports. Search by name, role, grade, or skill, and filter by location.
+- **Scene controls:** Pan, zoom, fit, show orbit paths, adjust speed, pause or resume, toggle the directory, and enter fullscreen. Keyboard controls and reduced-motion behavior support alternative ways to explore.
+- **Two dataset views:** Switch between the team and project constellations. The server loads each view from PostgreSQL; the browser validates and normalizes the graph before drawing it.
+
+The 3D effect is a perspective-projected simulation rendered with Canvas 2D. The camera can pan and zoom or follow a scripted flight; it does not offer free rotation around the scene. Motion illustrates the hierarchy rather than measured physical trajectories.
+
 ## Run
 
 Requires Node.js 22+ and npm.
@@ -23,33 +36,34 @@ npm test
 
 ## Explore
 
-- Switch between **Team view** (64 people) and **Project view** (6 people).
-- Click a node or find someone in the directory. Selection pauses motion and shows actual skills, location, supervisor, and direct reports.
+- Switch between **Team view** and **Project view**.
+- Click a node or find someone in the directory. Selection shows actual skills, location, supervisor, and direct reports while motion continues; use **Pause motion** to stop it.
 - Search by name, role, grade, or skill; combine with a location filter. Nonmatching nodes are dimmed to retain graph context.
 - Drag to pan; scroll or use the buttons to zoom. **Fit view** restores the complete overview. Directory selections center and enlarge that person.
+- Use **Fly in 3D** to travel to a root particle system; direct interaction cancels the flight.
 - Toggle orbit paths, change speed, pause, or resume. Reduced-motion preference starts the scene paused; hidden tabs stop scheduling animation frames.
 - Use **Reading the map** for all skill, proficiency, and location colors. Node radius retains the original grade encoding.
 - Keyboard: use the directory buttons; on the canvas use Space for motion, arrows for pan, +/− for zoom, and 0 to fit. Escape closes the selected profile.
 
 ## Architecture
 
-The browser owns the interactive visualization; the server is a small static-file host and PostgreSQL adapter. Dataset switching changes the URL to `/team-view` or `/project-view`, while both routes serve the same application shell.
+The browser owns the interactive visualization; the Fastify server serves static files and reads PostgreSQL. Dataset switching changes the URL to `/team-view` or `/project-view`, while both routes serve the same application shell.
 
 ```mermaid
 flowchart LR
-  DB[(PostgreSQL)] -->|repeatable-read dataset snapshot| API[database.mjs]
-  API --> SERVER[server.mjs\nstatic files + /api/datasets/*]
-  SERVER --> APP[index.html + styles.css]
-  APP --> LOAD[src/app.ts\nload, route, directory, profile, legend]
-  LOAD --> MODEL[src/model.ts\nvalidate + normalize graph]
-  LOAD --> DIR[src/directory.ts\nsearch + pagination]
-  LOAD --> CTRL[src/controller.ts\nRAF, lifecycle, input]
-  CTRL --> SIM[src/simulation.ts\nlayout, motion, camera, picking]
-  CTRL --> RENDER[src/renderer.ts\nCanvas 2D, culling, sprites]
-  MODEL --> SIM
-  MODEL --> RENDER
-  DIR -->|select person| CTRL
-  CTRL -->|stats + selection| LOAD
+  DB[(PostgreSQL)] -->|repeatable-read snapshot| DATA[database.mjs]
+  DATA --> SERVER[server.mjs<br/>Fastify routes and static files]
+  SERVER -->|JSON and app assets| APP[src/app.ts<br/>view lifecycle and controls]
+  APP --> API[src/api.ts and router.ts<br/>fetch, cancel, navigate]
+  API -->|dataset request| SERVER
+  APP --> MODEL[src/model.ts<br/>validate and normalize]
+  MODEL --> ENGINE[src/controller.ts<br/>input, camera flight, animation loop]
+  ENGINE --> SIM[src/simulation.ts<br/>3D orbits, projection, depth, picking]
+  SIM --> RENDER[src/renderer.ts<br/>Canvas 2D, sprites, parallax]
+  RENDER --> CANVAS[Canvas scene]
+  MODEL --> UI[directory, profile, legend views]
+  UI -->|selection and filters| ENGINE
+  ENGINE -->|selection and telemetry| APP
 ```
 
 | File | Responsibility |
@@ -57,7 +71,7 @@ flowchart LR
 | `src/model.ts` | Validates and copies input; resolves references; builds deterministic parent-first traversal. |
 | `src/simulation.ts` | Seeded orbital layout, reserved group bounds, elapsed-time updates, camera and picking geometry. |
 | `src/renderer.ts` | Canvas 2D drawing, depth order, viewport culling, connectors, labels, glyph fallbacks, and the bounded 24 MiB sprite cache. |
-| `src/controller.ts` | Elapsed-time animation pacing, visibility/reduced-motion handling, resize/context recovery, bounded diagnostics, pan/zoom, picking, and teardown. |
+| `src/controller.ts` | Elapsed-time animation pacing, scripted fly-to-system camera motion, visibility/reduced-motion handling, resize/context recovery, bounded diagnostics, pan/zoom, picking, and teardown. |
 | `src/app.ts` | Coordinates dataset loading, visualization lifecycle, controls, fullscreen, and telemetry. |
 | `src/api.ts` / `src/router.ts` | Cancelable dataset requests and route navigation. |
 | `src/store.ts` / `src/dom.ts` / `src/view-state.ts` | Shared application state and small DOM/screen helpers. |
@@ -86,4 +100,4 @@ Data and avatar provenance: original repository revision `494026b1afd3a4154ec8f4
 
 ### Spatial motion
 
-People move in a projected three-dimensional simulation: smaller particles move faster, and reporting relationships remain connected as groups travel. Depth affects apparent size and draw order. The animation is illustrative; the bundled datasets are not a live data feed. Motion can be paused or adjusted with the existing controls and starts paused when reduced motion is requested.
+People move in a projected three-dimensional simulation: smaller particles move faster, and reporting relationships remain connected as groups travel. Depth affects apparent size and draw order. The animation is illustrative; the datasets are loaded on demand, not pushed as a live feed. Motion can be paused or adjusted with the existing controls and starts paused when reduced motion is requested.
