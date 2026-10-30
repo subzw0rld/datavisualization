@@ -61,6 +61,18 @@ export class UIManager {
   private currentMetadata: MetadataResponse | null = null;
   private cachedNodes: ParticleNode[] = [];
 
+  // Fly Me / Galaxy Picker in Top App Bar
+  private galaxyPickerWrapper: HTMLElement | null = null;
+  private btnGalaxyPicker: HTMLButtonElement | null = null;
+  private galaxyPickerLabel: HTMLElement | null = null;
+  private galaxyCountBadge: HTMLElement | null = null;
+  private galaxyDropdownMenu: HTMLElement | null = null;
+  private galaxyDropdownList: HTMLElement | null = null;
+  private btnCosmicOverview: HTMLElement | null = null;
+  private isGalaxyDropdownOpen: boolean = false;
+  private cachedRoots: ParticleNode[] = [];
+  private activeGalaxyId: number | null = null;
+
   private modalName: HTMLElement | null = null;
   private modalDesig: HTMLElement | null = null;
   private modalLevel: HTMLElement | null = null;
@@ -99,6 +111,30 @@ export class UIManager {
     this.loaderTitle = document.getElementById('loader-title');
     this.loaderSubtitle = document.getElementById('loader-subtitle');
 
+    // App Bar Galaxy / Fly Me Elements
+    this.galaxyPickerWrapper = document.getElementById('galaxy-picker-wrapper');
+    this.btnGalaxyPicker = document.getElementById('btn-galaxy-picker') as HTMLButtonElement | null;
+    this.galaxyPickerLabel = document.getElementById('galaxy-picker-label');
+    this.galaxyCountBadge = document.getElementById('galaxy-count-badge');
+    this.galaxyDropdownMenu = document.getElementById('galaxy-dropdown-menu');
+    this.galaxyDropdownList = document.getElementById('galaxy-dropdown-list');
+    this.btnCosmicOverview = document.getElementById('btn-cosmic-overview');
+
+    this.btnGalaxyPicker?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Close location dropdown if open
+      if (this.isLocationDropdownOpen) this.setLocationDropdownOpen(false);
+      this.setGalaxyDropdownOpen(!this.isGalaxyDropdownOpen);
+    });
+
+    this.btnCosmicOverview?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.setGalaxyDropdownOpen(false);
+      this.activeGalaxyId = null;
+      this.updateGalaxyPickerUI();
+      this.listeners.onResetCamera();
+    });
+
     // App Bar Location Picker Elements
     this.locationPickerWrapper = document.getElementById('location-picker-wrapper');
     this.btnLocationPicker = document.getElementById('btn-location-picker') as HTMLButtonElement | null;
@@ -112,6 +148,8 @@ export class UIManager {
 
     this.btnLocationPicker?.addEventListener('click', (e) => {
       e.stopPropagation();
+      // Close galaxy dropdown if open
+      if (this.isGalaxyDropdownOpen) this.setGalaxyDropdownOpen(false);
       this.setLocationDropdownOpen(!this.isLocationDropdownOpen);
     });
 
@@ -125,21 +163,35 @@ export class UIManager {
       this.clearLocationSelection();
     });
 
-    // Light-dismiss dropdown when clicking outside or pressing Escape
+    // Light-dismiss dropdowns when clicking outside or pressing Escape
     document.addEventListener('pointerdown', (e) => {
+      const target = e.target as Node;
       if (
         this.isLocationDropdownOpen &&
         this.locationPickerWrapper &&
-        !this.locationPickerWrapper.contains(e.target as Node)
+        !this.locationPickerWrapper.contains(target)
       ) {
         this.setLocationDropdownOpen(false);
+      }
+      if (
+        this.isGalaxyDropdownOpen &&
+        this.galaxyPickerWrapper &&
+        !this.galaxyPickerWrapper.contains(target)
+      ) {
+        this.setGalaxyDropdownOpen(false);
       }
     });
 
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.isLocationDropdownOpen) {
-        this.setLocationDropdownOpen(false);
-        this.btnLocationPicker?.focus();
+      if (e.key === 'Escape') {
+        if (this.isGalaxyDropdownOpen) {
+          this.setGalaxyDropdownOpen(false);
+          this.btnGalaxyPicker?.focus();
+        }
+        if (this.isLocationDropdownOpen) {
+          this.setLocationDropdownOpen(false);
+          this.btnLocationPicker?.focus();
+        }
       }
     });
 
@@ -292,6 +344,121 @@ export class UIManager {
       this.updateLocationPickerUI();
       this.listeners.onFilterChange(this.currentFilters);
     });
+  }
+
+  public setGalaxyDropdownOpen(open: boolean): void {
+    this.isGalaxyDropdownOpen = open;
+    if (this.galaxyDropdownMenu) {
+      this.galaxyDropdownMenu.style.display = open ? 'flex' : 'none';
+    }
+    if (this.btnGalaxyPicker) {
+      this.btnGalaxyPicker.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+  }
+
+  public populateGalaxies(roots: ParticleNode[], nodes?: ParticleNode[]): void {
+    this.cachedRoots = roots;
+    if (nodes) this.cachedNodes = nodes;
+
+    if (!this.galaxyDropdownList) return;
+    this.galaxyDropdownList.innerHTML = '';
+
+    // Calculate count of particles per galaxy cluster
+    const clusterCounts = new Map<number, number>();
+    for (const node of this.cachedNodes) {
+      const cId = node.clusterRootId;
+      clusterCounts.set(cId, (clusterCounts.get(cId) || 0) + 1);
+    }
+
+    // Sort roots descending by population (or systemMass)
+    const sortedRoots = [...roots].sort((a, b) => {
+      const countA = clusterCounts.get(a.empID) || 0;
+      const countB = clusterCounts.get(b.empID) || 0;
+      return countB - countA;
+    });
+
+    for (let i = 0; i < sortedRoots.length; i++) {
+      const root = sortedRoots[i];
+      const count = clusterCounts.get(root.empID) || 1;
+      const isSelected = this.activeGalaxyId === root.empID;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `galaxy-item-btn${isSelected ? ' active' : ''}`;
+      btn.dataset.galaxyId = root.empID.toString();
+      btn.setAttribute('role', 'menuitem');
+      btn.title = `Fly to ${root.clusterName || root.name + "'s Galaxy"} (${count.toLocaleString()} particles)`;
+
+      const galaxyIcon = i === 0 ? '☀️' : (i % 2 === 0 ? '🪐' : '🌌');
+
+      btn.innerHTML = `
+        <div class="galaxy-item-left">
+          <span class="galaxy-glyph">${galaxyIcon}</span>
+          <div class="galaxy-item-info">
+            <span class="galaxy-item-name">${root.clusterName || root.name + "'s Galaxy"}</span>
+            <span class="galaxy-item-director">${root.name} · ${root.desig}</span>
+          </div>
+        </div>
+        <div class="galaxy-item-right">
+          <span class="galaxy-item-pop-badge">${count.toLocaleString()}</span>
+          <span class="galaxy-fly-arrow">✈</span>
+        </div>
+      `;
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.selectGalaxy(root.empID);
+      });
+
+      this.galaxyDropdownList.appendChild(btn);
+    }
+
+    this.updateGalaxyPickerUI();
+  }
+
+  public selectGalaxy(clusterRootId: number): void {
+    this.activeGalaxyId = clusterRootId;
+    this.updateGalaxyPickerUI();
+    this.setGalaxyDropdownOpen(false);
+    this.listeners.onFocusCluster3D?.(clusterRootId);
+  }
+
+  public setActiveGalaxy(clusterRootId: number | null): void {
+    this.activeGalaxyId = clusterRootId;
+    this.updateGalaxyPickerUI();
+  }
+
+  private updateGalaxyPickerUI(): void {
+    if (!this.galaxyPickerLabel || !this.btnGalaxyPicker) return;
+
+    if (this.activeGalaxyId !== null) {
+      const root = this.cachedRoots.find((r) => r.empID === this.activeGalaxyId);
+      const name = root?.clusterName || (root ? `${root.name}'s Galaxy` : 'Galaxy');
+      this.galaxyPickerLabel.textContent = name;
+      this.btnGalaxyPicker.classList.add('active');
+    } else {
+      const count = this.cachedRoots.length;
+      this.galaxyPickerLabel.textContent = count > 1 ? `Fly Me (${count})` : (count === 1 ? 'Fly Me' : 'Fly to Galaxy');
+      this.btnGalaxyPicker.classList.remove('active');
+    }
+
+    if (this.galaxyCountBadge) {
+      if (this.cachedRoots.length > 0) {
+        this.galaxyCountBadge.textContent = `${this.cachedRoots.length}`;
+        this.galaxyCountBadge.style.display = 'inline-block';
+      } else {
+        this.galaxyCountBadge.style.display = 'none';
+      }
+    }
+
+    // Update active highlight on dropdown items
+    if (this.galaxyDropdownList) {
+      const items = this.galaxyDropdownList.querySelectorAll<HTMLButtonElement>('.galaxy-item-btn');
+      items.forEach((item) => {
+        const id = Number(item.dataset.galaxyId);
+        item.classList.toggle('active', this.activeGalaxyId === id);
+      });
+    }
   }
 
   public setLocationDropdownOpen(open: boolean): void {

@@ -132,6 +132,7 @@ export interface CameraState {
   targetY: number;
   targetZ: number;
   focalLength: number;
+  rotation?: { w: number; x: number; y: number; z: number };
 }
 
 export interface SimulationFilters {

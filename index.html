@@ -48,6 +48,45 @@
       <a id="btn-view-team" href="/team" class="view-btn" role="tab" aria-selected="false" data-link>Team View (5,000 Nodes)</a>
     </nav>
 
+    <!-- Fly Me / Galaxy Picker in App Bar -->
+    <div class="galaxy-picker-wrapper" id="galaxy-picker-wrapper">
+      <button
+        id="btn-galaxy-picker"
+        class="galaxy-picker-btn"
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded="false"
+        title="Fly observer in 3D to any galaxy in the cosmos"
+      >
+        <span class="galaxy-rocket-icon">🚀</span>
+        <span id="galaxy-picker-label" class="galaxy-picker-label">Fly to Galaxy</span>
+        <span id="galaxy-count-badge" class="galaxy-count-badge" style="display: none;">0</span>
+        <svg class="galaxy-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <!-- Glass Galaxy Dropdown Menu -->
+      <div id="galaxy-dropdown-menu" class="galaxy-dropdown-menu" role="menu" aria-label="Select Galaxy to Fly To" style="display: none;">
+        <div class="galaxy-dropdown-header">
+          <div class="galaxy-header-title-row">
+            <span class="galaxy-dropdown-title">Fly to Galaxy</span>
+            <span class="galaxy-flight-badge">3D Flight</span>
+          </div>
+          <p class="galaxy-dropdown-hint">Select any cosmic system to initiate smooth 3D approach flight</p>
+        </div>
+        <div id="galaxy-dropdown-list" class="galaxy-dropdown-list">
+          <!-- Populated dynamically with galaxies -->
+        </div>
+        <div class="galaxy-dropdown-footer">
+          <button id="btn-cosmic-overview" class="galaxy-overview-btn" type="button" title="Fly back to full cosmic overview">
+            <span>🌌</span>
+            <span>Cosmic Overview (All Galaxies)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Location Selector in App Bar -->
     <div class="location-picker-wrapper" id="location-picker-wrapper">
       <button

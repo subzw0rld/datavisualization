@@ -89,7 +89,7 @@ class App {
           } else {
             // Contained in a single cluster: focus on the cluster's first matching employee
             const targetNode = this.matchingSearchNodes[0];
-            this.camera.focusOn(targetNode.x, targetNode.y, targetNode.z, 460);
+            this.camera.focusOn(targetNode.x, targetNode.y, targetNode.z, 460, targetNode.basisU, targetNode.basisV, targetNode);
           }
         } else if (!locationKey) {
           this.lastLocationFilterKey = '';
@@ -129,7 +129,7 @@ class App {
         const node = this.simulation.nodeMap.get(empID);
         if (node) {
           this.simulation.selectNode(empID);
-          this.camera.focusOn(node.x, node.y, node.z, 380);
+          this.camera.focusOn(node.x, node.y, node.z, 380, node.basisU, node.basisV, node);
           this.uiManager.showNodeDetails(node, this.simulation.nodeMap);
           this.router.updateQuery({ node: empID }, { replace: true });
         }
@@ -138,13 +138,14 @@ class App {
         const node = this.simulation.nodeMap.get(empID);
         if (node) {
           this.simulation.selectNode(empID);
-          this.camera.focusOn(node.x, node.y, node.z, 360);
+          this.camera.focusOn(node.x, node.y, node.z, 360, node.basisU, node.basisV, node);
         }
       },
       onFocusCluster3D: (clusterRootId) => {
         const root = this.simulation.nodeMap.get(clusterRootId);
         if (root) {
-          this.camera.focusOn(root.x, root.y, root.z, 650);
+          this.camera.focusOn(root.x, root.y, root.z, 650, root.basisU, root.basisV, root);
+          this.uiManager.setActiveGalaxy(clusterRootId);
         }
       },
       onZoomChange: (percent) => {
@@ -181,7 +182,7 @@ class App {
       const node = this.simulation.nodeMap.get(current.nodeId);
       if (node) {
         this.simulation.selectNode(node.empID);
-        this.camera.focusOn(node.x, node.y, node.z, 380);
+        this.camera.focusOn(node.x, node.y, node.z, 380, node.basisU, node.basisV, node);
         this.uiManager.showNodeDetails(node, this.simulation.nodeMap);
       }
     } else if (previous && previous.nodeId !== null) {
@@ -214,6 +215,8 @@ class App {
       if (dataset.metadata) {
         this.uiManager.populateLegend(dataset.metadata, this.simulation.nodes);
       }
+      // Populate Fly Me / Galaxy picker in app bar
+      this.uiManager.populateGalaxies(this.simulation.roots, this.simulation.nodes);
       const filters = this.uiManager.getCurrentFilters();
       this.matchingSearchNodes = this.simulation.applyFilters(filters);
       const count = this.matchingSearchNodes.length;
@@ -239,10 +242,11 @@ class App {
 
     // Smoothly fly camera to center the particle directly in screen view
     const focusDistance = 420;
-    this.camera.focusOn(node.x, node.y, node.z, focusDistance);
+    this.camera.focusOn(node.x, node.y, node.z, focusDistance, node.basisU, node.basisV, node);
   }
 
   private resetCamera(): void {
+    this.uiManager.setActiveGalaxy(null);
     if (this.simulation.roots.length > 1) {
       // For multi-galaxy cluster view, calculate overview distance so all spread-out clusters fit beautifully in screen view
       const targetOverviewZoom = 0.035;
@@ -296,8 +300,13 @@ class App {
         }
 
         if (this.simulation.draggedNode) {
-          // Unproject mouse movement into 3D world at the node's current Z depth
-          const world = this.camera.screenToWorld(e.clientX, e.clientY, this.simulation.draggedNode.z);
+          // Unproject mouse movement into 3D world with 3D camera orientation
+          const world = this.camera.screenToWorld(
+            e.clientX,
+            e.clientY,
+            this.simulation.draggedNode.z,
+            this.simulation.draggedNode
+          );
           this.simulation.updateDrag(world.x, world.y, world.z);
         } else if (this.isPanning && this.hasDragged) {
           this.camera.panBy(e.movementX, e.movementY);
@@ -343,17 +352,18 @@ class App {
       const hit = this.clickedCandidate || this.spatialGrid.queryScreenPoint(e.clientX, e.clientY, this.simulation.nodes);
       if (hit) {
         this.simulation.selectNode(hit.empID);
+        this.camera.focusOn(hit.x, hit.y, hit.z, 380, hit.basisU, hit.basisV, hit);
         this.uiManager.showNodeDetails(hit, this.simulation.nodeMap);
         this.router.updateQuery({ node: hit.empID }, { replace: true });
       }
       this.clickedCandidate = null;
     });
 
-    // Double-click to recenter camera
+    // Double-click to recenter camera with Spaceship Effect
     this.canvas.addEventListener('dblclick', (e: MouseEvent) => {
       const hit = this.spatialGrid.queryScreenPoint(e.clientX, e.clientY, this.simulation.nodes);
       if (hit) {
-        this.camera.focusOn(hit.x, hit.y, hit.z, 360);
+        this.camera.focusOn(hit.x, hit.y, hit.z, 360, hit.basisU, hit.basisV, hit);
       } else {
         this.resetCamera();
       }

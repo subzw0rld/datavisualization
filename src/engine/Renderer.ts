@@ -535,8 +535,10 @@ export class Renderer {
     simTime: number
   ): void {
     // Deep universe gradient with subtle camera parallax drift and breathing cosmic aura
-    const gradCenterX = width / 2 - camera.x * 0.0015 + Math.sin(simTime * 0.15) * 12;
-    const gradCenterY = height / 2 - camera.y * 0.0015 + Math.cos(simTime * 0.12) * 10;
+    const rotGradX = camera.yaw * 600;
+    const rotGradY = camera.pitch * 600;
+    const gradCenterX = width / 2 - (camera.x + rotGradX) * 0.0015 + Math.sin(simTime * 0.15) * 12;
+    const gradCenterY = height / 2 - (camera.y + rotGradY) * 0.0015 + Math.cos(simTime * 0.12) * 10;
     const maxDim = Math.max(width, height);
     const bgGrad = ctx.createRadialGradient(
       gradCenterX,
@@ -676,11 +678,16 @@ export class Renderer {
     const cx = width / 2;
     const cy = height / 2;
 
+    const rotOffsetX = camera.yaw * 850;
+    const rotOffsetY = camera.pitch * 850;
+    const effCamX = camera.x + rotOffsetX;
+    const effCamY = camera.y + rotOffsetY;
+
     for (let i = 0; i < this.stars.length; i++) {
       const star = this.stars[i];
 
-      const offsetX = camera.x * star.parallax;
-      const offsetY = camera.y * star.parallax;
+      const offsetX = effCamX * star.parallax;
+      const offsetY = effCamY * star.parallax;
 
       // Infinite toroidal wrap
       const baseX = star.normX * vw;
