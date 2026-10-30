@@ -19,6 +19,7 @@ export class Engine {
   private insets={left:24,right:350,top:130,bottom:110};
   private dragging:{id:number;x:number;y:number;cameraX:number;cameraY:number;parallaxX:number;parallaxY:number;moved:boolean}|null=null;
   private parallax={x:0,y:0};
+  private flight:{index:number;from:Camera;overviewScale:number;started:number;duration:number}|null=null;
   constructor(readonly canvas:HTMLCanvasElement,graph:Graph,private callbacks:EngineCallbacks) {
     this.simulation=new Simulation(graph);this.renderer=new Renderer(canvas,this.simulation,()=>this.invalidate());
     this.running=!this.reduced.matches;
@@ -55,7 +56,7 @@ export class Engine {
         const dx=e.clientX-this.dragging.x,dy=e.clientY-this.dragging.y;
         if(Math.hypot(dx,dy)>4)this.dragging.moved=true;
         if(this.dragging.moved) {
-          this.fitted=false;this.camera.x=this.dragging.cameraX+dx;this.camera.y=this.dragging.cameraY+dy;
+          this.flight=null;this.fitted=false;this.camera.x=this.dragging.cameraX+dx;this.camera.y=this.dragging.cameraY+dy;
           // Background layers travel only a fraction of the foreground drag.
           // Keeping this offset persistent avoids a visible snap when the pointer is released.
           this.parallax.x=this.dragging.parallaxX+dx*.18;this.parallax.y=this.dragging.parallaxY+dy*.18;
@@ -87,7 +88,7 @@ export class Engine {
       if(e.key==='-')this.zoom(1/1.2);
       if(e.key==='0')this.fit();
       const shifts:Record<string,[number,number]>={ArrowLeft:[30,0],ArrowRight:[-30,0],ArrowUp:[0,30],ArrowDown:[0,-30]};
-      if(shifts[e.key]){e.preventDefault();this.fitted=false;this.camera.x+=shifts[e.key][0];this.camera.y+=shifts[e.key][1];this.invalidate();}
+      if(shifts[e.key]){e.preventDefault();this.flight=null;this.fitted=false;this.camera.x+=shifts[e.key][0];this.camera.y+=shifts[e.key][1];this.invalidate();}
     },options);
     this.callbacks.playback(this.running);this.invalidate();
   }
@@ -97,6 +98,7 @@ export class Engine {
     if(changed&&this.fitted&&this.renderer.resizeCount>0)this.fit();
   }
   fit():void {
+    this.flight=null;
     const {left,right,top,bottom}=this.insets;
     const width=Math.max(160,this.renderer.width-left-right),height=Math.max(160,this.renderer.height-top-bottom);
     this.fitted=true;this.simulation.spread(width/height);
@@ -104,16 +106,27 @@ export class Engine {
     this.camera.x+=left;this.camera.y+=top;this.callbacks.zoom(this.camera.scale);this.invalidate();
   }
   zoom(factor:number,x=this.renderer.width/2,y=this.renderer.height/2):void {
+    this.flight=null;
     this.fitted=false;
     const scale=Math.min(2.5,Math.max(.0001,this.camera.scale*factor)),ratio=scale/this.camera.scale;
     this.camera={x:x-(x-this.camera.x)*ratio,y:y-(y-this.camera.y)*ratio,scale};
     this.callbacks.zoom(scale);this.invalidate();
   }
   focus(index:number):void {
+    this.flight=null;
     this.fitted=false;
     const {left,right,top,bottom}=this.insets;
     this.camera={scale:1.1,x:(this.renderer.width+left-right)/2-this.simulation.projectedX[index]*1.1,y:(this.renderer.height+top-bottom)/2-this.simulation.projectedY[index]*1.1};this.parallax={x:0,y:0};
     this.callbacks.zoom(this.camera.scale);this.invalidate();
+  }
+  flyToSystem(index:number):void {
+    if(!this.simulation.graph.roots.includes(index))return;
+    this.fitted=false;this.parallax={x:0,y:0};
+    const {left,right,top,bottom}=this.insets;
+    const width=Math.max(160,this.renderer.width-left-right),height=Math.max(160,this.renderer.height-top-bottom);
+    const overview=fitCamera(this.simulation.currentBounds(),width,height).scale;
+    this.flight={index,from:{...this.camera},overviewScale:Math.max(.0001,Math.min(this.camera.scale,overview)*.88),started:performance.now(),duration:this.reduced.matches?0:8700};
+    this.invalidate();
   }
   select(index:number):void {this.selected=index;this.selectedAt=performance.now();this.invalidate();}
   setRunning(running:boolean):void {this.running=running;this.last=null;this.callbacks.playback(running);this.invalidate();}
@@ -126,6 +139,27 @@ export class Engine {
     if(this.running&&this.last!==null)this.record('interval',now-this.last);
     if(this.running&&this.last!==null)this.simulation.update((now-this.last)/1000*this.speed);
     this.last=now;
+    if(this.flight) {
+      const {index,from,overviewScale,started,duration}=this.flight;
+      const progress=duration?Math.min(1,(now-started)/duration):1;
+      const smooth=(value:number)=>value*value*value*(value*(value*6-15)+10);
+      const travel=smooth(progress);
+      const {left,right,top,bottom}=this.insets;
+      const width=Math.max(160,this.renderer.width-left-right),height=Math.max(160,this.renderer.height-top-bottom);
+      const radius=this.simulation.extent[index]*this.simulation.depthScale[index];
+      const targetScale=Math.min(1.7,Math.max(.08,Math.min(width,height)/(radius*2.5),from.scale*1.5));
+      const scale=progress<.38
+        ?from.scale+(overviewScale-from.scale)*smooth(progress/.38)
+        :progress<.62?overviewScale
+        :overviewScale+(targetScale-overviewScale)*smooth((progress-.62)/.38);
+      const centerX=(this.renderer.width+left-right)/2,centerY=(this.renderer.height+top-bottom)/2;
+      const startX=(centerX-from.x)/from.scale,startY=(centerY-from.y)/from.scale;
+      const worldX=startX+(this.simulation.projectedX[index]-startX)*travel;
+      const worldY=startY+(this.simulation.projectedY[index]-startY)*travel;
+      this.camera={x:centerX-worldX*scale,y:centerY-worldY*scale,scale};
+      this.callbacks.zoom(this.camera.scale);this.dirty=true;
+      if(progress===1)this.flight=null;
+    }
     if(this.pointer) {
       const p=pointerToWorld(this.pointer.x,this.pointer.y,this.canvas.getBoundingClientRect(),this.renderer.width,this.renderer.height,this.camera);
       this.hovered=pick(this.simulation,p.x,p.y,i=>!this.matches||this.matches.has(i),this.simulation.depthOrder);
@@ -149,7 +183,7 @@ export class Engine {
         this.callbacks.stats(this.renderer.visible,sorted[Math.floor((sorted.length-1)*.95)]||0,this.renderer.artwork.memoryMiB,this.running&&average?1000/average:0,intervals[Math.floor((intervals.length-1)*.95)]||0);this.lastStats=now;
       }
     }
-    if(this.running||this.renderer.artwork.pending||(this.selected>=0&&pulse<1))this.raf=requestAnimationFrame(this.frame);
+    if(this.running||this.flight||this.renderer.artwork.pending||(this.selected>=0&&pulse<1))this.raf=requestAnimationFrame(this.frame);
   };
   private cancel():void {if(this.raf!==null)cancelAnimationFrame(this.raf);this.raf=null;}
   destroy():void {this.disposed=true;this.cancel();this.observer.disconnect();this.performanceObserver?.disconnect();this.abort.abort();this.renderer.destroy();}

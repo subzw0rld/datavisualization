@@ -10,6 +10,19 @@ let graph:Graph|null=null,engine:Engine|null=null,request=0,selected=-1;
 let directoryIndex:DirectoryIndex|null=null,directoryPage=0,directoryMatches:number[]=[];
 let activeDataset:string|null=null,loadingDataset:string|null=null,searchFrame:number|null=null;
 let directoryOpen=window.innerWidth>740;
+function closeFlightMenu():void {
+  $('fly-menu').hidden=true;$('fly-menu-button').setAttribute('aria-expanded','false');
+}
+function renderFlightDestinations():void {
+  const list=$('flight-destinations');list.replaceChildren();
+  if(!graph)return;
+  for(const index of graph.roots) {
+    const node=graph.nodes[index],button=el('button','flight-destination');
+    button.append(el('span','',node.name),el('small','',`${node.children.length} direct satellites`));
+    button.addEventListener('click',()=>{engine?.flyToSystem(index);closeFlightMenu();announce(`Flying to ${node.name}'s particle system.`);});
+    list.append(button);
+  }
+}
 const routes={team:'/team-view',project:'/project-view'} as const;
 function datasetFromPath(): 'team'|'project' {
   return window.location.pathname===routes.project?'project':'team';
@@ -112,12 +125,14 @@ async function loadDataset(name:'team'|'project'):Promise<void> {
   if(loadingDataset===name||(engine&&activeDataset===name))return;
   loadingDataset=name;
   const current=++request;engine?.destroy();engine=null;graph=null;selected=-1;
+  closeFlightMenu();$('flight-destinations').replaceChildren();$<HTMLButtonElement>('fly-menu-button').disabled=true;
   $('loading').hidden=false;$('error').hidden=true;
   for(const id of ['team','project'])$(`${id}-view`).setAttribute('aria-pressed',String(id===name));
   try {
     const response=await fetch(`/api/datasets/${name}`);if(!response.ok){const body=await response.json().catch(()=>null);throw new Error(body?.error || `Could not load the ${name} dataset (${response.status}).`);}
     const data:unknown=await response.json();if(current!==request)return;
     graph=normalize(data);directoryIndex=new DirectoryIndex(graph);directoryPage=0;activeDataset=name;loadingDataset=null;
+    renderFlightDestinations();$<HTMLButtonElement>('fly-menu-button').disabled=graph.roots.length===0;
     text('page-title',name==='team'?'Team constellation':'Project constellation');
     text('people-count',String(graph.nodes.length));text('connection-count',String(graph.nodes.length-graph.roots.length));text('group-count',String(graph.roots.length));text('directory-badge',String(graph.nodes.length));
     text('scene-caption',`${graph.roots.length} ${graph.roots.length===1?'nucleus':'nuclei'} / spatial motion`);
@@ -138,6 +153,8 @@ async function loadDataset(name:'team'|'project'):Promise<void> {
   }
 }
 $('team-view').addEventListener('click',()=>{navigateToDataset('team');void loadDataset('team');});
+$('fly-menu-button').addEventListener('click',()=>{const menu=$('fly-menu');menu.hidden=!menu.hidden;$('fly-menu-button').setAttribute('aria-expanded',String(!menu.hidden));});
+document.addEventListener('pointerdown',event=>{if(!(event.target as Element).closest('.flight-control'))closeFlightMenu();});
 $('project-view').addEventListener('click',()=>{navigateToDataset('project');void loadDataset('project');});
 window.addEventListener('popstate',()=>void loadDataset(datasetFromPath()));
 const queueSearch=()=>{directoryPage=0;if(searchFrame!==null)cancelAnimationFrame(searchFrame);searchFrame=requestAnimationFrame(()=>{searchFrame=null;renderDirectory();});};
@@ -151,7 +168,7 @@ $('play-pause').addEventListener('click',()=>{if(engine){engine.setRunning(!engi
 $('fit').addEventListener('click',()=>engine?.fit());$('zoom-in').addEventListener('click',()=>engine?.zoom(1.25));$('zoom-out').addEventListener('click',()=>engine?.zoom(.8));
 $('toggle-orbits').addEventListener('click',()=>{if(engine){engine.orbits=!engine.orbits;$('toggle-orbits').setAttribute('aria-pressed',String(engine.orbits));engine.invalidate();}});
 $('speed').addEventListener('input',()=>{const speed=Number($<HTMLInputElement>('speed').value);if(engine)engine.speed=speed;text('speed-value',`${speed}×`);});
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&selected>=0)clearSelection();});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'){if(!$('fly-menu').hidden){closeFlightMenu();$('fly-menu-button').focus();}else if(selected>=0)clearSelection();}});
 window.addEventListener('pagehide',()=>{engine?.destroy();engine=null;});
 window.addEventListener('pageshow',event=>{if(event.persisted)void loadDataset(datasetFromPath());});
 $('toggle-directory').addEventListener('click',()=>setDirectory(!directoryOpen,true));
