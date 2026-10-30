@@ -13,6 +13,12 @@ export interface Node extends Person {
 }
 export interface Graph { name: string; nodes: Node[]; roots: number[]; order: number[]; byId: Map<string, number>; source: Dataset }
 const radii: Record<string, number> = {'4A':60,'4B':55,'5A':50,'5B':45,'6A':40,'6B':35,'7A':30,'7B':25,'8A':20,'8B':15};
+export function gradeRadius(grade:string):number {
+  if(radii[grade])return radii[grade];
+  const match=/^(\d+)([A-Z])$/.exec(grade);
+  if(!match)return 20;
+  return Math.max(12,Math.min(65,60-(Number(match[1])-4)*10-(match[2].charCodeAt(0)-65)*5));
+}
 function invariant(value: unknown, message: string): asserts value { if (!value) throw new Error(message); }
 function lookups(items: Lookup[], name: string): Map<string, Lookup> {
   invariant(Array.isArray(items), `Missing ${name} lookup.`);
@@ -36,15 +42,14 @@ export function normalize(input: unknown): Graph {
     invariant(typeof p.name === 'string' && typeof p.title === 'string', `Invalid name/title: ${p.id}`);
     invariant(p.parentId === null || typeof p.parentId === 'string', `Invalid supervisor: ${p.id}`);
     invariant(Number.isFinite(p.reportedCount) && p.reportedCount >= 0, `Invalid reported headcount: ${p.id}`);
-    invariant(typeof p.avatar === 'string' && /^[\w.-]+$/.test(p.avatar), `Invalid avatar filename: ${p.id}`);
-    invariant(radii[p.grade] && locations.has(p.locationId), `Unknown grade/location: ${p.id}`);
+    const avatar=typeof p.avatar==='string' && /^[\w.-]+$/.test(p.avatar)?p.avatar:'avatar.png';
+    if(!locations.has(p.locationId))locations.set(p.locationId,{id:p.locationId,label:`Unknown location (${p.locationId})`,color:'#647b87'});
     invariant(Array.isArray(p.skills), `Missing skills: ${p.id}`);
-    const resolvedSkills = p.skills.map(s => {
-      invariant(s && skills.has(s.id) && levels.has(s.levelId), `Unknown skill/proficiency: ${p.id}`);
-      return {skill:skills.get(s.id)!, level:levels.get(s.levelId)!};
-    });
+    const resolvedSkills = p.skills.filter(s=>s && skills.has(s.id) && levels.has(s.levelId))
+      .map(s=>({skill:skills.get(s.id)!,level:levels.get(s.levelId)!}));
     byId.set(p.id,index);
-    return {...p, parent:-1, children:[], depth:0, radius:radii[p.grade], systemMass:radii[p.grade]**3, location:locations.get(p.locationId)!, resolvedSkills};
+    const radius=gradeRadius(p.grade);
+    return {...p,avatar,parent:-1,children:[],depth:0,radius,systemMass:radius**3,location:locations.get(p.locationId)!,resolvedSkills};
   });
   const roots: number[] = [];
   nodes.forEach((node,index) => {

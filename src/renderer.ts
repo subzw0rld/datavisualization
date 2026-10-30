@@ -129,10 +129,21 @@ export class Renderer {
     if(options.orbits) {
       ctx.strokeStyle='#95afbf19';ctx.lineWidth=1/camera.scale;ctx.setLineDash([3/camera.scale,7/camera.scale]);
       for(const i of sim.graph.order) if(nodes[i].parent>=0) {
+        const parent=nodes[i].parent,radius=sim.orbit[i];
+        const near={x:0,y:0,scale:0},far={x:0,y:0,scale:0};
+        sim.project(sim.x[parent],sim.y[parent],sim.z[parent]+radius,near);
+        sim.project(sim.x[parent],sim.y[parent],sim.z[parent]-radius,far);
+        const maxScale=Math.max(near.scale,far.scale);
+        const projectedRadius=radius*maxScale;
+        if(projectedRadius*camera.scale<3)continue;
+        const left=Math.min(near.x,far.x)-projectedRadius,right=Math.max(near.x,far.x)+projectedRadius;
+        const top=Math.min(near.y,far.y)-projectedRadius,bottom=Math.max(near.y,far.y)+projectedRadius;
+        if(right<view.x||left>view.x+view.width||bottom<view.y||top>view.y+view.height)continue;
+        const steps=projectedRadius*camera.scale<24?12:projectedRadius*camera.scale<80?24:48;
         const point={x:0,y:0,scale:0};let connected=false;
         ctx.beginPath();
-        for(let step=0;step<=48;step++) {
-          sim.projectOrbit(i,step/48*Math.PI*2,point);
+        for(let step=0;step<=steps;step++) {
+          sim.projectOrbit(i,step/steps*Math.PI*2,point);
           if(point.scale===0){connected=false;continue;}
           if(connected)ctx.lineTo(point.x,point.y);else ctx.moveTo(point.x,point.y);
           connected=true;

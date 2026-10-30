@@ -6,4 +6,3 @@ dist/
 tests/*
 !tests/fixtures/
 !tests/fixtures/*.json
-package-lock.json

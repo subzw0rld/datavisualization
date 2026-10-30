@@ -80,7 +80,8 @@ export class Engine {
     canvas.addEventListener('pointerleave',()=>{this.pointer=null;this.hovered=-1;this.invalidate();},options);
     canvas.addEventListener('wheel',e=>{
       e.preventDefault();const rect=canvas.getBoundingClientRect();
-      this.zoom(Math.exp(-e.deltaY*.001),e.clientX-rect.left,e.clientY-rect.top);
+      const pixels=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?rect.height:1);
+      this.zoom(Math.exp(-pixels*.001),e.clientX-rect.left,e.clientY-rect.top);
     },{...options,passive:false});
     canvas.addEventListener('keydown',e=>{
       if(e.key===' '){e.preventDefault();this.setRunning(!this.running);}
@@ -137,7 +138,7 @@ export class Engine {
     if(!this.dirty&&now<this.nextFrame){this.raf=requestAnimationFrame(this.frame);return;}
     const begin=performance.now();
     if(this.running&&this.last!==null)this.record('interval',now-this.last);
-    if(this.running&&this.last!==null)this.simulation.update((now-this.last)/1000*this.speed);
+    if(this.running&&this.last!==null)this.simulation.update(Math.min(.25,(now-this.last)/1000)*this.speed);
     this.last=now;
     if(this.flight) {
       const {index,from,overviewScale,started,duration}=this.flight;

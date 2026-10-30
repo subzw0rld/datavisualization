@@ -7,12 +7,7 @@
   <title>ORBIT — Organization Intelligence</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23151f2b'/%3E%3Ccircle cx='32' cy='32' r='18' stroke='%23e6b675' stroke-width='5' fill='none'/%3E%3Ccircle cx='47' cy='22' r='7' fill='%23e6b675'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/styles.css">
-  <script>
-    if (window.EventSource) {
-      const hmr = new EventSource('/__hmr');
-      hmr.addEventListener('reload', () => window.location.reload());
-    }
-  </script>
+  <script src="/__dev-hmr.js"></script>
   <script type="module" src="/dist/app.js"></script>
 </head>
 <body>
@@ -40,7 +35,7 @@
         <canvas id="universe" tabindex="0" aria-label="Interactive people map. Use the directory to select a person. Drag to pan, scroll to zoom. Space pauses, arrows pan, plus and minus zoom, zero fits the view." aria-describedby="canvas-instructions"></canvas>
         <p id="canvas-instructions" class="sr-only">The directory contains all people and their roles. Selecting a person opens their profile while the simulation continues. Use Pause motion to stop it.</p>
         <div id="loading" class="scene-message loading-message" role="status" aria-live="polite"><span class="loading-spinner" aria-hidden="true"></span><span>Loading constellation data…</span></div>
-        <div id="error" class="scene-message error" role="alert" hidden></div>
+        <div id="error" class="scene-message error" role="alert" hidden><span id="error-message"></span> <button id="retry-load" type="button">Retry</button></div>
         <div class="canvas-bottom"><span id="scene-caption">9 groups. One connected team.</span><div class="zoom-controls"><button id="zoom-out" aria-label="Zoom out">−</button><span id="zoom-level">100%</span><button id="zoom-in" aria-label="Zoom in">+</button><span class="control-divider"></span><button id="fit" aria-label="Fit all people in view" title="Fit all people in view">⌗ <span>Fit view</span></button></div></div>
       </section>
       <aside id="personnel" class="sidebar" aria-label="People and legend">

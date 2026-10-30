@@ -69,13 +69,12 @@ export class Simulation {
     this.anchorX=new Float64Array(n); this.anchorY=new Float64Array(n);
     this.velocityX=new Float64Array(n);this.velocityY=new Float64Array(n);
     this.extent=Float64Array.from(graph.nodes,p=>p.radius+35);
-    const orbitByGrade:Record<string,number>={'5B':400,'6A':300,'6B':300,'7A':200,'7B':200,'8A':120,'8B':120};
     for (const index of graph.order) {
       const node=graph.nodes[index];
       const maxClearance=node.children.reduce((r,i)=>Math.max(r,(graph.nodes[i].radius+35)*1.6),1);
       const scatter=new Scatter(maxClearance*2);
       for(const child of node.children) {
-        const person=graph.nodes[child],inner=(orbitByGrade[person.grade]??400)*2.4;
+        const person=graph.nodes[child],inner=Math.max(120,Math.min(400,person.radius*8))*2.4;
         const outer=Math.max(inner*2.2,Math.sqrt(node.children.length)*maxClearance*2.5);
         const point=scatter.place(attempt=>{
           const seed=`${person.id}:scatter:${attempt}`;
@@ -208,7 +207,7 @@ export function pointerToWorld(clientX:number,clientY:number,rect:{left:number;t
   return {x:((clientX-rect.left)*width/rect.width-camera.x)/camera.scale,
     y:((clientY-rect.top)*height/rect.height-camera.y)/camera.scale};
 }
-export function pick(sim:Simulation,x:number,y:number,visible:(index:number)=>boolean=()=>true,order:readonly number[]=[...sim.graph.order].sort((a,b)=>sim.z[a]-sim.z[b]||a-b)):number {
+export function pick(sim:Simulation,x:number,y:number,visible:(index:number)=>boolean,order:readonly number[]):number {
   for (let at=order.length-1;at>=0;at--) {
     const i=order[at];
     if (!visible(i)||sim.depthScale[i]===0) continue;

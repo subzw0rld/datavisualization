@@ -6,13 +6,14 @@
   "scripts": {
     "build": "tsc",
     "check": "tsc --noEmit",
-    "prestart": "npm run build",
     "start": "node server.mjs",
+    "dev": "npm run build && DEV_HMR=1 node server.mjs",
     "test": "npm run build && node --test tests/*.test.mjs"
   },
   "devDependencies": {
     "typescript": "~5.9.3"
   },
+  "engines": {"node": ">=22"},
   "dependencies": {
     "@fastify/static": "^10.1.8",
     "dotenv": "^18.0.9",

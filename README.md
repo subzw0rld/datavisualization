@@ -8,12 +8,13 @@ Requires Node.js 22+ and npm.
 
 ```sh
 npm install
+npm run build
 npm start
 ```
 
 Configure `.env` with `DATABASE_URL`, `HOST`, and `PORT`. The server defaults to `HOST=127.0.0.1` and `PORT=4173`; set `HOST=127.0.0.1` explicitly to keep it local, then open **http://127.0.0.1:4173**. The server connects to PostgreSQL and exposes the datasets through `/api/datasets/team` and `/api/datasets/project`. The API reads a fresh repeatable-read snapshot when a view is loaded; it does not push live updates. The server has no authentication, so only expose it on a trusted network. Location IDs without matching lookup rows are labeled as unknown.
 
-After editing TypeScript, run `npm run build` and refresh. CSS/HTML edits only need a refresh. The server does not perform live reload.
+After editing TypeScript, run `npm run build` and refresh. For local live reload, use `npm run dev`; it enables the watcher and reload endpoint only for that process. Production startup uses the existing `dist/` output and requires `DATABASE_URL`.
 
 ```sh
 npm run check
@@ -57,16 +58,19 @@ flowchart LR
 | `src/simulation.ts` | Seeded orbital layout, reserved group bounds, elapsed-time updates, camera and picking geometry. |
 | `src/renderer.ts` | Canvas 2D drawing, depth order, viewport culling, connectors, labels, glyph fallbacks, and the bounded 24 MiB sprite cache. |
 | `src/controller.ts` | Elapsed-time animation pacing, visibility/reduced-motion handling, resize/context recovery, bounded diagnostics, pan/zoom, picking, and teardown. |
-| `src/app.ts` | Route-aware dataset loading, accessible directory pagination/filtering, profile and legend UI, playback controls, fullscreen, and telemetry. |
+| `src/app.ts` | Coordinates dataset loading, visualization lifecycle, controls, fullscreen, and telemetry. |
+| `src/api.ts` / `src/router.ts` | Cancelable dataset requests and route navigation. |
+| `src/store.ts` / `src/dom.ts` / `src/view-state.ts` | Shared application state and small DOM/screen helpers. |
+| `src/directory-view.ts` / `src/profile-view.ts` / `src/legend-view.ts` | Directory, profile, and legend presentation. |
 | `src/directory.ts` | Precomputed search metadata, alphabetical ordering, matching, and accessible pages of up to 60 people. |
 | `server.mjs` | Serves the app and database-backed dataset API. |
 | `database.mjs` | Reads and maps PostgreSQL records in a consistent snapshot. |
 
-Root groups are packed deterministically rather than randomly scattered. Team roots drift gently within reserved bounds; project roots stay stationary. Orbital speed is 0.18 rad/s at the default setting (slower for deeper levels), independently of refresh rate. Large elapsed gaps are clamped to 50 ms; time does not catch up after tab suspension. The pulse is a short outer halo rather than an expansion of all ring artwork. There is no collision simulation, so nodes within nested groups can still overlap; use pause, zoom, and the directory to inspect them.
+Root groups are packed deterministically rather than randomly scattered. Groups drift gently within reserved bounds. Orbital speed depends on particle size and is independent of refresh rate. Large elapsed gaps are clamped to 250 ms; time does not catch up after tab suspension. The pulse is a short outer halo rather than an expansion of all ring artwork. There is no collision simulation, so nodes within nested groups can still overlap; use pause, zoom, and the directory to inspect them.
 
 Avatars are decoded once per unique URL and clipped/scaled explicitly. Missing images retain a drawn silhouette. Sprite keys share identical visual appearances; display scale is capped at DPR 2 and caches are rebuilt for changed geometry/resolution. Tiny particles use location-colored glyphs, while detailed sprites are prioritized for selected/hovered and inspection-scale people. Sprite construction is limited to at most eight canvases per draw with a soft 3 ms budget; pending work continues while paused. The renderer skips offscreen artwork while simulation still updates its ancestors. Connectors crossing the viewport are retained even when their endpoints are outside it. Labels avoid overlapping other labels.
 
-The engine advances from actual elapsed time, clamps unusually large gaps to 50 ms, and resets its clock across pause, visibility, and resume transitions. It adapts frame pacing to measured CPU work, coalesces pointer picking to rendered frames, reuses depth order for picking, and keeps a bounded 240-event diagnostic buffer. Canvas context loss/restoration and repeated draw failures are handled without silently leaving the animation stopped. The directory precomputes search text, coalesces search updates to an animation frame, and paginates instead of rendering every match at once.
+The engine advances from actual elapsed time, clamps unusually large gaps to 250 ms, and resets its clock across pause, visibility, and resume transitions. It adapts frame pacing to measured CPU work, coalesces pointer picking to rendered frames, reuses depth order for picking, and keeps a bounded 240-event diagnostic buffer. Canvas context loss/restoration and repeated draw failures are handled without silently leaving the animation stopped. The directory precomputes search text, coalesces search updates to an animation frame, and paginates instead of rendering every match at once.
 
 The raw JSON records are copied before normalization. Declared headcounts remain separate from children actually present. The four original records with a declared report missing from this subset show that distinction in their profiles. Static example billing charts were replaced with real per-person skill and relationship details. Unused email/client fields were omitted during import.
 
