@@ -13,24 +13,26 @@ export class Simulation {
 
   // 3D Cosmic Space Boundaries (expansive astronomical universe)
   private cosmicBounds = {
-    minX: -12000,
-    maxX: 12000,
-    minY: -9000,
-    maxY: 9000,
-    minZ: -8000,
-    maxZ: 8000
+    minX: -45000,
+    maxX: 45000,
+    minY: -35000,
+    maxY: 35000,
+    minZ: -30000,
+    maxZ: 30000
   };
 
   public setBounds(width: number, height: number): void {
-    // Dynamic boundary scales generously with screen viewport and supports large-scale universes
-    const span = Math.max(width, height) * 6.5;
+    // Dynamic boundary scales with screen diagonal and aspect ratio to accommodate spread-out clusters
+    const screenDiagonal = Math.hypot(width, height);
+    const aspect = Math.max(1.3, width / height);
+    const span = screenDiagonal * 24;
     this.cosmicBounds = {
-      minX: -span,
-      maxX: span,
-      minY: -span * 0.75,
-      maxY: span * 0.75,
-      minZ: -Math.max(6000, span * 0.65),
-      maxZ: Math.max(6000, span * 0.65)
+      minX: -span * aspect,
+      maxX: span * aspect,
+      minY: -span * 0.85,
+      maxY: span * 0.85,
+      minZ: -Math.max(16000, span * 0.8),
+      maxZ: Math.max(16000, span * 0.8)
     };
   }
 
@@ -108,6 +110,11 @@ export class Simulation {
     const query = filters.searchQuery.trim().toLowerCase();
     const matchingNodes: ParticleNode[] = [];
 
+    const hasLocationFilter = Boolean(
+      (filters.locationIds && filters.locationIds.length > 0) ||
+      (filters.locationId !== null && filters.locationId !== undefined)
+    );
+
     for (const node of this.nodes) {
       let matches = true;
 
@@ -124,8 +131,19 @@ export class Simulation {
       }
 
       // Filter by location
-      if (matches && filters.locationId !== null && filters.locationId !== undefined) {
-        if (node.locationId !== filters.locationId) matches = false;
+      let locationMatches = true;
+      if (filters.locationIds && filters.locationIds.length > 0) {
+        if (!filters.locationIds.includes(node.locationId)) {
+          locationMatches = false;
+        }
+      } else if (filters.locationId !== null && filters.locationId !== undefined) {
+        if (node.locationId !== filters.locationId) {
+          locationMatches = false;
+        }
+      }
+
+      if (!locationMatches) {
+        matches = false;
       }
 
       // Filter by search query (name, desig, empID, skills)
@@ -141,6 +159,8 @@ export class Simulation {
       }
 
       node.matchesFilter = matches;
+      node.isLocationHighlighted = hasLocationFilter && locationMatches && matches;
+
       if (matches) {
         matchingNodes.push(node);
       }
@@ -175,6 +195,20 @@ export class Simulation {
           let fx = Math.cos(root.wanderAngle) * speed;
           let fy = Math.sin(root.wanderAngle) * speed * 0.75;
           let fz = Math.sin(root.wanderAngle * 0.7) * speed * 0.5;
+
+          // Gentle home anchor retention: allows organic drift while keeping clusters in their spread-out sectors
+          if (root.homeX !== undefined && root.homeY !== undefined && root.homeZ !== undefined) {
+            const hx = root.homeX - root.x;
+            const hy = root.homeY - root.y;
+            const hz = root.homeZ - root.z;
+            const distFromHome = Math.hypot(hx, hy, hz);
+            if (distFromHome > 400) {
+              const pull = 0.08 * (distFromHome - 400);
+              fx += (hx / distFromHome) * pull;
+              fy += (hy / distFromHome) * pull;
+              fz += (hz / distFromHome) * pull;
+            }
+          }
 
           // Soft cosmic boundary rebound
           if (root.x < bounds.minX) fx += (bounds.minX - root.x) * 1.5;

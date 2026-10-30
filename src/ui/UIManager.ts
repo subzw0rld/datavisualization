@@ -15,6 +15,7 @@ export interface UIEventListeners {
   onToggleLinks: () => boolean;
   onSelectNode: (empID: number) => void;
   onFocusNode3D: (empID: number) => void;
+  onFocusCluster3D?: (clusterRootId: number) => void;
   onZoomChange: (percent: number) => void;
   onZoomStep: (deltaPercent: number) => void;
   onCloseNodeDetails?: () => void;
@@ -27,6 +28,7 @@ export class UIManager {
     skillId: null,
     levelId: null,
     locationId: null,
+    locationIds: [],
     searchQuery: ''
   };
 
@@ -44,6 +46,20 @@ export class UIManager {
   private loader: HTMLElement | null = null;
   private loaderTitle: HTMLElement | null = null;
   private loaderSubtitle: HTMLElement | null = null;
+
+  // Location Picker in Top App Bar
+  private locationPickerWrapper: HTMLElement | null = null;
+  private btnLocationPicker: HTMLButtonElement | null = null;
+  private locationPickerLabel: HTMLElement | null = null;
+  private locationCountBadge: HTMLElement | null = null;
+  private locationDropdownMenu: HTMLElement | null = null;
+  private locationDropdownList: HTMLElement | null = null;
+  private locationClusterBreakdown: HTMLElement | null = null;
+  private btnLocationSelectAll: HTMLElement | null = null;
+  private btnLocationClearAll: HTMLElement | null = null;
+  private isLocationDropdownOpen: boolean = false;
+  private currentMetadata: MetadataResponse | null = null;
+  private cachedNodes: ParticleNode[] = [];
 
   private modalName: HTMLElement | null = null;
   private modalDesig: HTMLElement | null = null;
@@ -82,6 +98,50 @@ export class UIManager {
     this.loader = document.getElementById('cosmic-loader');
     this.loaderTitle = document.getElementById('loader-title');
     this.loaderSubtitle = document.getElementById('loader-subtitle');
+
+    // App Bar Location Picker Elements
+    this.locationPickerWrapper = document.getElementById('location-picker-wrapper');
+    this.btnLocationPicker = document.getElementById('btn-location-picker') as HTMLButtonElement | null;
+    this.locationPickerLabel = document.getElementById('location-picker-label');
+    this.locationCountBadge = document.getElementById('location-count-badge');
+    this.locationDropdownMenu = document.getElementById('location-dropdown-menu');
+    this.locationDropdownList = document.getElementById('location-dropdown-list');
+    this.locationClusterBreakdown = document.getElementById('location-cluster-breakdown');
+    this.btnLocationSelectAll = document.getElementById('btn-location-select-all');
+    this.btnLocationClearAll = document.getElementById('btn-location-clear-all');
+
+    this.btnLocationPicker?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.setLocationDropdownOpen(!this.isLocationDropdownOpen);
+    });
+
+    this.btnLocationSelectAll?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.selectAllLocations();
+    });
+
+    this.btnLocationClearAll?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.clearLocationSelection();
+    });
+
+    // Light-dismiss dropdown when clicking outside or pressing Escape
+    document.addEventListener('pointerdown', (e) => {
+      if (
+        this.isLocationDropdownOpen &&
+        this.locationPickerWrapper &&
+        !this.locationPickerWrapper.contains(e.target as Node)
+      ) {
+        this.setLocationDropdownOpen(false);
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isLocationDropdownOpen) {
+        this.setLocationDropdownOpen(false);
+        this.btnLocationPicker?.focus();
+      }
+    });
 
     // Mode toggles
     const projectBtn = document.getElementById('btn-view-project');
@@ -219,6 +279,7 @@ export class UIManager {
         skillId: null,
         levelId: null,
         locationId: null,
+        locationIds: [],
         searchQuery: ''
       };
       const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
@@ -228,7 +289,213 @@ export class UIManager {
       if (clearBtn) clearBtn.style.display = 'none';
 
       document.querySelectorAll('.legend-chip').forEach((c) => c.classList.remove('active'));
+      this.updateLocationPickerUI();
       this.listeners.onFilterChange(this.currentFilters);
+    });
+  }
+
+  public setLocationDropdownOpen(open: boolean): void {
+    this.isLocationDropdownOpen = open;
+    if (this.locationDropdownMenu) {
+      this.locationDropdownMenu.style.display = open ? 'flex' : 'none';
+    }
+    if (this.btnLocationPicker) {
+      this.btnLocationPicker.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+  }
+
+  public populateLocationDropdown(metadata: MetadataResponse, nodes?: ParticleNode[]): void {
+    this.currentMetadata = metadata;
+    if (nodes) this.cachedNodes = nodes;
+
+    if (!this.locationDropdownList || !metadata.locations) return;
+    this.locationDropdownList.innerHTML = '';
+
+    // Calculate count of particles per location
+    const locationCounts: Record<number, number> = {};
+    for (const node of this.cachedNodes) {
+      locationCounts[node.locationId] = (locationCounts[node.locationId] || 0) + 1;
+    }
+
+    for (const [key, item] of Object.entries(metadata.locations)) {
+      const locId = Number(key);
+      const count = locationCounts[locId] || 0;
+      const isSelected = this.currentFilters.locationIds?.includes(locId) ?? false;
+
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.className = `location-option-item${isSelected ? ' selected' : ''}`;
+      option.dataset.locationId = locId.toString();
+      option.setAttribute('role', 'menuitemcheckbox');
+      option.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+
+      option.innerHTML = `
+        <div class="location-option-left">
+          <span class="location-checkbox-box">
+            <svg class="location-checkbox-icon" viewBox="0 0 12 12">
+              <polyline points="2 6 5 9 10 3"></polyline>
+            </svg>
+          </span>
+          <span class="location-color-dot" style="background-color: ${item.color}; color: ${item.color};"></span>
+          <span class="location-name-text">${item.location}</span>
+        </div>
+        <span class="location-particle-pill">${count.toLocaleString()}</span>
+      `;
+
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleLocationSelection(locId);
+      });
+
+      this.locationDropdownList.appendChild(option);
+    }
+
+    this.updateLocationPickerUI();
+  }
+
+  public toggleLocationSelection(locId: number): void {
+    if (!this.currentFilters.locationIds) {
+      this.currentFilters.locationIds = [];
+    }
+
+    const index = this.currentFilters.locationIds.indexOf(locId);
+    if (index >= 0) {
+      this.currentFilters.locationIds.splice(index, 1);
+    } else {
+      this.currentFilters.locationIds.push(locId);
+    }
+
+    this.currentFilters.locationId =
+      this.currentFilters.locationIds.length === 1 ? this.currentFilters.locationIds[0] : null;
+
+    this.updateLocationPickerUI();
+    this.syncLegendLocationChips();
+    this.listeners.onFilterChange(this.currentFilters);
+  }
+
+  public clearLocationSelection(): void {
+    this.currentFilters.locationIds = [];
+    this.currentFilters.locationId = null;
+    this.updateLocationPickerUI();
+    this.syncLegendLocationChips();
+    this.listeners.onFilterChange(this.currentFilters);
+  }
+
+  public selectAllLocations(): void {
+    this.clearLocationSelection();
+  }
+
+  private updateLocationPickerUI(): void {
+    if (!this.locationPickerLabel || !this.btnLocationPicker) return;
+
+    const selectedIds = this.currentFilters.locationIds || [];
+    const totalLocations = this.currentMetadata?.locations
+      ? Object.keys(this.currentMetadata.locations).length
+      : 0;
+
+    // Update dropdown option items active states
+    if (this.locationDropdownList) {
+      const options = this.locationDropdownList.querySelectorAll<HTMLButtonElement>('.location-option-item');
+      options.forEach((opt) => {
+        const id = Number(opt.dataset.locationId);
+        const isSel = selectedIds.includes(id);
+        opt.classList.toggle('selected', isSel);
+        opt.setAttribute('aria-checked', isSel ? 'true' : 'false');
+      });
+    }
+
+    if (selectedIds.length === 0 || (totalLocations > 0 && selectedIds.length === totalLocations)) {
+      this.locationPickerLabel.textContent = 'All Locations';
+      this.btnLocationPicker.classList.remove('active');
+      if (this.locationCountBadge) {
+        this.locationCountBadge.style.display = 'none';
+      }
+    } else if (selectedIds.length === 1) {
+      const locDef = this.currentMetadata?.locations?.[selectedIds[0]];
+      this.locationPickerLabel.textContent = locDef ? locDef.location : 'Location';
+      this.btnLocationPicker.classList.add('active');
+
+      const count = this.cachedNodes.filter((n) => n.locationId === selectedIds[0]).length;
+      if (this.locationCountBadge) {
+        this.locationCountBadge.textContent = count > 0 ? count.toLocaleString() : '0';
+        this.locationCountBadge.style.display = 'inline-block';
+      }
+    } else {
+      this.locationPickerLabel.textContent = `${selectedIds.length} Locations`;
+      this.btnLocationPicker.classList.add('active');
+
+      const count = this.cachedNodes.filter((n) => selectedIds.includes(n.locationId)).length;
+      if (this.locationCountBadge) {
+        this.locationCountBadge.textContent = count > 0 ? count.toLocaleString() : '0';
+        this.locationCountBadge.style.display = 'inline-block';
+      }
+    }
+
+    // Populate cluster distribution breakdown when locations are filtered
+    const clusterBreakdownEl = this.locationClusterBreakdown;
+    if (clusterBreakdownEl) {
+      if (selectedIds.length > 0) {
+        const clusterMap = new Map<number, { name: string; count: number }>();
+        for (const node of this.cachedNodes) {
+          if (selectedIds.includes(node.locationId)) {
+            const cId = node.clusterRootId;
+            const existing = clusterMap.get(cId) || {
+              name: node.clusterName || `Galaxy #${cId}`,
+              count: 0
+            };
+            existing.count += 1;
+            clusterMap.set(cId, existing);
+          }
+        }
+
+        if (clusterMap.size > 1) {
+          clusterBreakdownEl.style.display = 'flex';
+          clusterBreakdownEl.innerHTML = `
+            <div class="cluster-dist-title">
+              <span>Across ${clusterMap.size} Galaxies</span>
+              <small style="color: var(--text-dim); font-size: 0.65rem;">Click to focus</small>
+            </div>
+            <div class="cluster-chips-grid"></div>
+          `;
+
+          const grid = clusterBreakdownEl.querySelector('.cluster-chips-grid');
+          if (grid) {
+            const sortedClusters = Array.from(clusterMap.entries()).sort(
+              (a, b) => b[1].count - a[1].count
+            );
+
+            for (const [cId, info] of sortedClusters) {
+              const chip = document.createElement('button');
+              chip.type = 'button';
+              chip.className = 'cluster-focus-chip';
+              chip.title = `Focus on ${info.name} (${info.count} employees)`;
+              chip.innerHTML = `
+                <span class="cluster-chip-name">🪐 ${info.name}</span>
+                <span class="cluster-chip-count">${info.count.toLocaleString()}</span>
+              `;
+              chip.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.listeners.onFocusCluster3D?.(cId);
+              });
+              grid.appendChild(chip);
+            }
+          }
+        } else {
+          clusterBreakdownEl.style.display = 'none';
+        }
+      } else {
+        clusterBreakdownEl.style.display = 'none';
+      }
+    }
+  }
+
+  private syncLegendLocationChips(): void {
+    const selectedIds = this.currentFilters.locationIds || [];
+    const locationChips = document.querySelectorAll<HTMLElement>('.legend-chip[data-location-id]');
+    locationChips.forEach((chip) => {
+      const id = Number(chip.dataset.locationId);
+      const isSelected = selectedIds.includes(id);
+      chip.classList.toggle('active', isSelected);
     });
   }
 
@@ -246,6 +513,11 @@ export class UIManager {
       chip.dataset[filterKey] = id.toString();
       chip.innerHTML = `<span class="legend-color-dot" style="background-color: ${item.color}"></span><span>${item.label}</span>`;
       chip.addEventListener('click', () => {
+        if (filterKey === 'locationId') {
+          this.toggleLocationSelection(id);
+          return;
+        }
+
         if (this.currentFilters[filterKey] === id) {
           this.currentFilters[filterKey] = null;
           chip.classList.remove('active');
@@ -260,7 +532,10 @@ export class UIManager {
     }
   }
 
-  public populateLegend(metadata: MetadataResponse): void {
+  public populateLegend(metadata: MetadataResponse, nodes?: ParticleNode[]): void {
+    this.currentMetadata = metadata;
+    if (nodes) this.cachedNodes = nodes;
+
     const skillList = document.getElementById('legend-skill-list');
     const levelList = document.getElementById('legend-level-list');
     const locationList = document.getElementById('legend-location-list');
@@ -288,6 +563,9 @@ export class UIManager {
       }
       this.populateFilterGroup(locationList, locationItems, 'locationId');
     }
+
+    // Populate app bar location dropdown
+    this.populateLocationDropdown(metadata, nodes);
   }
 
   private initDialog(): void {
@@ -620,7 +898,7 @@ export class UIManager {
 
     // Sync slider position if user is not currently dragging it
     if (this.zoomSlider && document.activeElement !== this.zoomSlider) {
-      this.zoomSlider.value = Math.max(5, Math.min(280, zoomPercent)).toString();
+      this.zoomSlider.value = Math.max(2, Math.min(280, zoomPercent)).toString();
     }
   }
 

@@ -227,17 +227,29 @@ export class DataLoader {
       root.x = 0;
       root.y = 0;
       root.z = 0;
+      root.homeX = 0;
+      root.homeY = 0;
+      root.homeZ = 0;
     } else {
       // Multiple galaxies (e.g. Team View):
       // The system with the largest systemMass is placed at the center (0, 0, 0)
       roots[0].x = 0;
       roots[0].y = 0;
       roots[0].z = 0;
+      roots[0].homeX = 0;
+      roots[0].homeY = 0;
+      roots[0].homeZ = 0;
 
       // Scatter the remaining galaxies across expansive deep space
+      // Distances are calculated dynamically based on screen diagonal and aspect ratio
+      // to ensure clusters have ample clearance, never crowd one another, and spread widely across the display
       const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5 degrees
-      const baseGalaxyDist = Math.max(bounds.width, bounds.height) * 3.8;
-      const clusterSpanRadius = baseGalaxyDist * Math.max(1.4, Math.sqrt(rootCount / 3));
+      const screenDiagonal = Math.hypot(bounds.width, bounds.height);
+      const screenAspect = Math.max(1.3, bounds.width / bounds.height);
+
+      // Base cluster separation factor computed from screen size
+      const baseGalaxyDist = screenDiagonal * 7.5;
+      const clusterSpanRadius = baseGalaxyDist * Math.max(1.5, Math.sqrt(rootCount / 2.2));
 
       const otherRoots = roots.slice(1);
       const otherCount = otherRoots.length;
@@ -246,11 +258,17 @@ export class DataLoader {
         const t = (idx + 0.5) / otherCount;
         const inclination = Math.acos(1 - 2 * t);
         const azimuth = goldenAngle * idx;
-        const dist = (0.45 + 0.55 * Math.sqrt(t)) * clusterSpanRadius;
+        // Higher base offset (0.70) ensures the closest outer cluster stays generously separated from the center galaxy
+        const dist = (0.7 + 0.5 * Math.sqrt(t)) * clusterSpanRadius;
 
-        root.x = Math.sin(inclination) * Math.cos(azimuth) * dist * 1.5;
+        root.x = Math.sin(inclination) * Math.cos(azimuth) * dist * screenAspect;
         root.y = Math.cos(inclination) * dist * 1.1;
-        root.z = Math.sin(inclination) * Math.sin(azimuth) * dist * 1.3;
+        root.z = Math.sin(inclination) * Math.sin(azimuth) * dist * 1.25;
+
+        // Anchor home position for gentle sector retention during organic simulation drift
+        root.homeX = root.x;
+        root.homeY = root.y;
+        root.homeZ = root.z;
       });
     }
 

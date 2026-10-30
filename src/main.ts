@@ -41,6 +41,7 @@ class App {
   private matchingSearchNodes: ParticleNode[] = [];
   private currentSearchMatchIndex: number = 0;
   private lastCenteredQuery: string = '';
+  private lastLocationFilterKey: string = '';
 
   constructor() {
     const canvas = document.getElementById('particle-canvas') as HTMLCanvasElement;
@@ -71,6 +72,27 @@ class App {
         } else {
           this.currentSearchMatchIndex = 0;
           this.lastCenteredQuery = '';
+        }
+
+        // Camera flight to showcase highlighted location particles
+        const locationKey = (filters.locationIds || []).slice().sort().join(',') ||
+          (filters.locationId !== null && filters.locationId !== undefined ? String(filters.locationId) : '');
+
+        if (locationKey && locationKey !== this.lastLocationFilterKey && this.matchingSearchNodes.length > 0) {
+          this.lastLocationFilterKey = locationKey;
+          
+          // Check whether the matching location particles are distributed across multiple galaxies
+          const clusterIds = new Set(this.matchingSearchNodes.map((n) => n.clusterRootId));
+          if (clusterIds.size > 1) {
+            // Distributed across multiple clusters: frame the cosmic overview so user sees all glowing galaxies
+            this.resetCamera();
+          } else {
+            // Contained in a single cluster: focus on the cluster's first matching employee
+            const targetNode = this.matchingSearchNodes[0];
+            this.camera.focusOn(targetNode.x, targetNode.y, targetNode.z, 460);
+          }
+        } else if (!locationKey) {
+          this.lastLocationFilterKey = '';
         }
 
         this.uiManager.updateFilterStatus(count, filters.searchQuery, this.currentSearchMatchIndex);
@@ -117,6 +139,12 @@ class App {
         if (node) {
           this.simulation.selectNode(empID);
           this.camera.focusOn(node.x, node.y, node.z, 360);
+        }
+      },
+      onFocusCluster3D: (clusterRootId) => {
+        const root = this.simulation.nodeMap.get(clusterRootId);
+        if (root) {
+          this.camera.focusOn(root.x, root.y, root.z, 650);
         }
       },
       onZoomChange: (percent) => {
@@ -180,12 +208,12 @@ class App {
         this.spriteCache.invalidate(empID);
       });
 
-      // Populate dynamic legend filters from backend metadata
-      if (dataset.metadata) {
-        this.uiManager.populateLegend(dataset.metadata);
-      }
-
       this.simulation.setData(dataset);
+
+      // Populate dynamic legend & app bar location filters from backend metadata
+      if (dataset.metadata) {
+        this.uiManager.populateLegend(dataset.metadata, this.simulation.nodes);
+      }
       const filters = this.uiManager.getCurrentFilters();
       this.matchingSearchNodes = this.simulation.applyFilters(filters);
       const count = this.matchingSearchNodes.length;
@@ -215,7 +243,15 @@ class App {
   }
 
   private resetCamera(): void {
-    this.camera.reset(0, 0, 0);
+    if (this.simulation.roots.length > 1) {
+      // For multi-galaxy cluster view, calculate overview distance so all spread-out clusters fit beautifully in screen view
+      const targetOverviewZoom = 0.035;
+      const overviewDist = (this.camera.focalLength / targetOverviewZoom) - this.camera.focalLength;
+      this.camera.reset(0, 0, 0, overviewDist);
+    } else {
+      // Single galaxy (e.g. project view) at focused 7% zoom
+      this.camera.reset(0, 0, 0);
+    }
   }
 
   private initEvents(): void {

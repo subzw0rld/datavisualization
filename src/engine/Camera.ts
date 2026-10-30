@@ -16,7 +16,7 @@ export interface ProjectedPoint {
 export class Camera {
   public focalLength: number = 850;
 
-  public minZ: number = -32000;
+  public minZ: number = -95000;
   public maxZ: number = 800;
 
   // Launch at 7% zoom: depth = focalLength / 0.07 ≈ 12142.86 -> z = focalLength - depth ≈ -11292.86
@@ -51,10 +51,10 @@ export class Camera {
   }
 
   /**
-   * Sets target zoom to an exact percentage (e.g. 5% to 350%)
+   * Sets target zoom to an exact percentage (e.g. 2% to 350%)
    */
   public setZoomPercent(percent: number): void {
-    const targetScale = Math.max(0.05, Math.min(3.5, percent / 100));
+    const targetScale = Math.max(0.015, Math.min(3.5, percent / 100));
     const newTargetZ = this.focalLength - (this.focalLength / targetScale);
     this.targetZ = Math.min(this.maxZ, Math.max(this.minZ, newTargetZ));
   }

@@ -99,6 +99,9 @@ export interface ParticleNode {
   // Wander properties (for root/wandering supervisors)
   wanderAngle: number;
   wanderSpeed: number;
+  homeX?: number;
+  homeY?: number;
+  homeZ?: number;
   
   // 3D Projected Screen Coordinates (computed per frame)
   projX: number;
@@ -114,6 +117,7 @@ export interface ParticleNode {
   isSelected: boolean;
   pulseTimer: number; // 0 to 1 pulse progress
   matchesFilter: boolean;
+  isLocationHighlighted?: boolean;
   
   // Optional client metadata
   email?: string;
@@ -134,6 +138,7 @@ export interface SimulationFilters {
   skillId?: number | null;
   levelId?: number | null;
   locationId?: number | null;
+  locationIds?: number[];
   searchQuery: string;
 }
 

@@ -48,6 +48,46 @@
       <a id="btn-view-team" href="/team" class="view-btn" role="tab" aria-selected="false" data-link>Team View (5,000 Nodes)</a>
     </nav>
 
+    <!-- Location Selector in App Bar -->
+    <div class="location-picker-wrapper" id="location-picker-wrapper">
+      <button
+        id="btn-location-picker"
+        class="location-picker-btn"
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded="false"
+        title="Filter and highlight particles by location"
+      >
+        <svg class="location-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <span id="location-picker-label" class="location-picker-label">All Locations</span>
+        <span id="location-count-badge" class="location-count-badge" style="display: none;">0</span>
+        <svg class="location-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <!-- Glass Dropdown Menu -->
+      <div id="location-dropdown-menu" class="location-dropdown-menu" role="menu" aria-label="Highlight Locations" style="display: none;">
+        <div class="location-dropdown-header">
+          <span class="location-dropdown-title">Highlight Location</span>
+          <div class="location-dropdown-actions">
+            <button id="btn-location-select-all" class="location-action-btn" type="button" title="Select all locations">All</button>
+            <button id="btn-location-clear-all" class="location-action-btn" type="button" title="Clear location filters">Clear</button>
+          </div>
+        </div>
+        <div id="location-dropdown-list" class="location-dropdown-list">
+          <!-- Populated dynamically with location options -->
+        </div>
+        <!-- Cluster Distribution Breakdown (shown when location is filtered) -->
+        <div id="location-cluster-breakdown" class="location-cluster-breakdown" style="display: none;">
+          <!-- Dynamically populated galaxy distribution chips -->
+        </div>
+      </div>
+    </div>
+
     <div class="search-container">
       <div class="search-box">
         <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -95,7 +135,7 @@
           <input
             type="range"
             id="zoom-slider"
-            min="5"
+            min="2"
             max="280"
             value="7"
             step="1"
