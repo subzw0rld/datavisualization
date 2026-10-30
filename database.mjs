@@ -2,6 +2,7 @@ import pg from 'pg';
 
 export function createDatabase(connectionString) {
   const pool = new pg.Pool({connectionString, connectionTimeoutMillis: 5000, max: 4});
+  pool.on('error', error => console.error('Idle database connection failed:', error));
   return {
     async dataset(name) {
       const client = await pool.connect();

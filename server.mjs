@@ -1,38 +1,35 @@
 import 'dotenv/config';
-import http from 'node:http';
-import {createDatabase} from './database.mjs';
-import fs from 'node:fs/promises';
+import Fastify from 'fastify';
+import fastifyStatic from '@fastify/static';
 import path from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import {createDatabase} from './database.mjs';
+
 const root=path.dirname(fileURLToPath(import.meta.url));
 const port=Number(process.env.PORT||4173);
 const host=process.env.HOST||'127.0.0.1';
 const database=process.env.DATABASE_URL ? createDatabase(process.env.DATABASE_URL) : null;
-const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.png':'image/png','.map':'application/json'};
-const server=http.createServer(async(req,res)=>{
-  try {
-    if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405,{'Allow':'GET, HEAD'});res.end();return;}
-    const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
-    if(pathname==='/api/datasets/team'||pathname==='/api/datasets/project') {
-      if(!database){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'Database is not configured.'}));return;}
-      try {
-        const data=await database.dataset(pathname.split('/').pop());
-        res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
-        res.end(req.method==='HEAD'?undefined:JSON.stringify(data));
-      } catch(error) {console.error('Dataset query failed:',error.message);res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({error:'Could not load data from the database.'}));}
-      return;
-    }
-    // The visualization is a small client-side app. Serve its shell for each
-    // view route so those URLs also work when opened or refreshed directly.
-    const file=pathname==='/'||pathname==='/team-view'||pathname==='/project-view'?'/index.html':pathname;
-    const full=path.resolve(root,'.'+file);
-    const allowed=file==='/index.html'||file==='/styles.css'||file.startsWith('/assets/')||file.startsWith('/dist/');
-    if(!allowed||!full.startsWith(root+path.sep)){res.writeHead(404);res.end('Not found');return;}
-    const data=await fs.readFile(full);
-    res.writeHead(200,{'Content-Type':types[path.extname(full)]||'application/octet-stream','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});
-    res.end(req.method==='HEAD'?undefined:data);
-  } catch {res.writeHead(404);res.end('Not found');}
+export const app=Fastify({logger:true});
+
+app.addHook('onSend',async(_request,reply,payload)=>{
+  reply.header('X-Content-Type-Options','nosniff');
+  return payload;
 });
-server.listen(port,host,()=>console.log(`Orbit is running on ${host}:${port}`));
-for(const signal of ['SIGINT','SIGTERM']) process.once(signal,()=>server.close(()=>{if(database)database.close().finally(()=>process.exit(0));else process.exit(0);}));
-server.on('error',error=>{console.error(error.message);process.exitCode=1;});
+app.register(fastifyStatic,{root:path.join(root,'assets'),prefix:'/assets/',decorateReply:false,cacheControl:false});
+app.register(fastifyStatic,{root:path.join(root,'dist'),prefix:'/dist/',decorateReply:false,cacheControl:false});
+app.register(fastifyStatic,{root,prefix:'/',serve:false,decorateReply:true,cacheControl:false});
+
+for(const name of ['team','project']) app.get(`/api/datasets/${name}`,async(_request,reply)=>{
+  reply.header('Cache-Control','no-store');
+  if(!database)return reply.code(503).send({error:'Database is not configured.'});
+  try{return await database.dataset(name);}
+  catch(error){app.log.error({err:error},'Dataset query failed');return reply.code(503).send({error:'Could not load data from the database.'});}
+});
+for(const route of ['/','/team-view','/project-view'])app.get(route,(_request,reply)=>reply.sendFile('index.html'));
+app.get('/styles.css',(_request,reply)=>reply.sendFile('styles.css'));
+app.addHook('onClose',async()=>{if(database)await database.close();});
+if(process.argv[1] && import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
+  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{void app.close();});
+  try{await app.listen({port,host});}
+  catch(error){app.log.error(error);process.exitCode=1;}
+}

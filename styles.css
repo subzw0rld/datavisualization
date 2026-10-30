@@ -15,7 +15,7 @@ main,.workspace,.universe{position:absolute;inset:0}.universe{overflow:hidden;ba
 
 /* Holographic instrument treatment, layered over the existing layout. */
 :root{--cyan:#81f4ff;--panel:rgba(4,22,34,.92)}
-.universe{background:radial-gradient(ellipse at 42% 47%,#12435788,transparent 56%),radial-gradient(ellipse at 75% 75%,#0c344c66,transparent 50%),#020b13}
+.universe{background:radial-gradient(ellipse at 42% 47%,#12435770,transparent 56%),radial-gradient(ellipse at 75% 75%,#0c344c52,transparent 50%),#01070d}
 .topbar{background:linear-gradient(180deg,#0a2534f5,#04131eea);border-bottom-color:#4bb6c66b}
 .sidebar,.playback-bar,.zoom-controls{border-color:#4bafc477;box-shadow:0 12px 45px #0008,inset 0 0 26px #27849b12,0 0 20px #37c7e00d}
 .sidebar{background:linear-gradient(145deg,#0b2b3beF,#04131ff5)}

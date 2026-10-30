@@ -17,7 +17,8 @@ export class Engine {
   private observer:ResizeObserver;private abort=new AbortController();
   private reduced=matchMedia('(prefers-reduced-motion: reduce)');
   private insets={left:24,right:350,top:130,bottom:110};
-  private dragging:{id:number;x:number;y:number;cameraX:number;cameraY:number;moved:boolean}|null=null;
+  private dragging:{id:number;x:number;y:number;cameraX:number;cameraY:number;parallaxX:number;parallaxY:number;moved:boolean}|null=null;
+  private parallax={x:0,y:0};
   constructor(readonly canvas:HTMLCanvasElement,graph:Graph,private callbacks:EngineCallbacks) {
     this.simulation=new Simulation(graph);this.renderer=new Renderer(canvas,this.simulation,()=>this.invalidate());
     this.running=!this.reduced.matches;
@@ -46,13 +47,20 @@ export class Engine {
     this.reduced.addEventListener('change',()=>{if(this.reduced.matches)this.setRunning(false);},options);
     canvas.addEventListener('pointerdown',e=>{
       if(e.button!==0)return;canvas.setPointerCapture(e.pointerId);
-      this.dragging={id:e.pointerId,x:e.clientX,y:e.clientY,cameraX:this.camera.x,cameraY:this.camera.y,moved:false};
+      this.dragging={id:e.pointerId,x:e.clientX,y:e.clientY,cameraX:this.camera.x,cameraY:this.camera.y,
+        parallaxX:this.parallax.x,parallaxY:this.parallax.y,moved:false};
     },options);
     canvas.addEventListener('pointermove',e=>{
       if(this.dragging) {
         const dx=e.clientX-this.dragging.x,dy=e.clientY-this.dragging.y;
         if(Math.hypot(dx,dy)>4)this.dragging.moved=true;
-        if(this.dragging.moved) {this.fitted=false;this.camera.x=this.dragging.cameraX+dx;this.camera.y=this.dragging.cameraY+dy;this.invalidate();}
+        if(this.dragging.moved) {
+          this.fitted=false;this.camera.x=this.dragging.cameraX+dx;this.camera.y=this.dragging.cameraY+dy;
+          // Background layers travel only a fraction of the foreground drag.
+          // Keeping this offset persistent avoids a visible snap when the pointer is released.
+          this.parallax.x=this.dragging.parallaxX+dx*.18;this.parallax.y=this.dragging.parallaxY+dy*.18;
+          this.invalidate();
+        }
       } else {
         this.pointer={x:e.clientX,y:e.clientY};this.invalidate();
       }
@@ -92,7 +100,7 @@ export class Engine {
     const {left,right,top,bottom}=this.insets;
     const width=Math.max(160,this.renderer.width-left-right),height=Math.max(160,this.renderer.height-top-bottom);
     this.fitted=true;this.simulation.spread(width/height);
-    this.camera=fitCamera(this.simulation.currentBounds(),width,height);
+    this.camera=fitCamera(this.simulation.currentBounds(),width,height);this.parallax={x:0,y:0};
     this.camera.x+=left;this.camera.y+=top;this.callbacks.zoom(this.camera.scale);this.invalidate();
   }
   zoom(factor:number,x=this.renderer.width/2,y=this.renderer.height/2):void {
@@ -104,7 +112,7 @@ export class Engine {
   focus(index:number):void {
     this.fitted=false;
     const {left,right,top,bottom}=this.insets;
-    this.camera={scale:1.1,x:(this.renderer.width+left-right)/2-this.simulation.projectedX[index]*1.1,y:(this.renderer.height+top-bottom)/2-this.simulation.projectedY[index]*1.1};
+    this.camera={scale:1.1,x:(this.renderer.width+left-right)/2-this.simulation.projectedX[index]*1.1,y:(this.renderer.height+top-bottom)/2-this.simulation.projectedY[index]*1.1};this.parallax={x:0,y:0};
     this.callbacks.zoom(this.camera.scale);this.invalidate();
   }
   select(index:number):void {this.selected=index;this.selectedAt=performance.now();this.invalidate();}
@@ -125,7 +133,7 @@ export class Engine {
     }
     const pulse=this.reduced.matches?1:Math.min(1,(now-this.selectedAt)/700);
     if(this.dirty||this.running||this.renderer.artwork.pending||(this.selected>=0&&pulse<1)) {
-      try {this.renderer.draw(this.camera,{selected:this.selected,hovered:this.hovered,matches:this.matches,orbits:this.orbits,pulse});this.failures=0;}
+      try {this.renderer.draw(this.camera,{selected:this.selected,hovered:this.hovered,matches:this.matches,orbits:this.orbits,pulse,parallax:this.parallax});this.failures=0;}
       catch(error) {this.record('draw-error');if(++this.failures===1)console.error('Canvas draw failed',error);if(this.failures>=3){this.setRunning(false);this.cancel();return;}}
       const elapsed=performance.now()-begin;
       this.cost=this.cost?this.cost*.8+elapsed*.2:elapsed;

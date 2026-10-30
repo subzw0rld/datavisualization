@@ -36,6 +36,16 @@ class Artwork {
     const canvas=document.createElement('canvas');canvas.width=canvas.height=Math.ceil(size*resolution);
     const ctx=canvas.getContext('2d')!;
     ctx.scale(canvas.width/size,canvas.height/size);ctx.translate(outer,outer);
+    this.draw(ctx,node);
+    const bytes=canvas.width*canvas.height*4;
+    while(this.bytes+bytes>this.budget && this.cache.size) {
+      const oldest=this.cache.keys().next().value!;this.bytes-=this.cache.get(oldest)!.bytes;this.cache.delete(oldest);this.counters.evictions++;
+    }
+    this.cache.set(key,{canvas,bytes,used:this.epoch});this.bytes+=bytes;
+    return canvas;
+  }
+  draw(ctx:CanvasRenderingContext2D,node:Node):void {
+    const radius=node.radius;
     const core=ctx.createRadialGradient(-radius*.3,-radius*.4,0,0,0,radius);
     core.addColorStop(0,'#477d8a');core.addColorStop(.55,'#173e50');core.addColorStop(1,'#04121e');
     ctx.fillStyle=core;ctx.beginPath();ctx.arc(0,0,radius,0,Math.PI*2);ctx.fill();
@@ -55,27 +65,23 @@ class Artwork {
     ring(radius,radius+7,0,Math.PI*2,node.location.color);
     node.resolvedSkills.forEach((s,i)=>{
       const start=i/node.resolvedSkills.length*Math.PI*2-Math.PI/2, end=(i+1)/node.resolvedSkills.length*Math.PI*2-Math.PI/2;
-      ring(radius+7,radius+14,start+.012,end-.012,s.skill.color);
-      ring(radius+14,radius+21,start+.012,end-.012,s.level.color);
+      const gap=node.resolvedSkills.length>1?.012:0;
+      ring(radius+7,radius+14,start+gap,end-gap,s.skill.color);
+      ring(radius+14,radius+21,start+gap,end-gap,s.level.color);
     });
     ctx.strokeStyle='#75c7d375';ctx.lineWidth=.75;ctx.shadowColor='#50c8e0';ctx.shadowBlur=4;
     ctx.beginPath();ctx.arc(0,0,radius+23.5,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
-    const bytes=canvas.width*canvas.height*4;
-    while(this.bytes+bytes>this.budget && this.cache.size) {
-      const oldest=this.cache.keys().next().value!;this.bytes-=this.cache.get(oldest)!.bytes;this.cache.delete(oldest);this.counters.evictions++;
-    }
-    this.cache.set(key,{canvas,bytes,used:this.epoch});this.bytes+=bytes;
-    return canvas;
   }
   clear():void {this.cache.clear();this.bytes=0;}
   destroy():void {this.disposed=true;this.clear();this.images.clear();this.signatures.clear();}
   get memoryMiB():number {return this.bytes/1048576;}
 }
-interface RenderOptions {selected:number;hovered:number;matches:Set<number>|null;orbits:boolean; pulse:number}
+interface RenderOptions {selected:number;hovered:number;matches:Set<number>|null;orbits:boolean; pulse:number;parallax?:{x:number;y:number}}
 export class Renderer {
   private ctx:CanvasRenderingContext2D;
   readonly artwork:Artwork;
   private starfield:HTMLCanvasElement|null=null;
+  private gridfield:HTMLCanvasElement|null=null;
   width=1;height=1;dpr=1;visible=0;
   private buckets=new Map<number,number>();
   resizeCount=0;
@@ -92,6 +98,7 @@ export class Renderer {
     this.dpr=Math.min(window.devicePixelRatio||1,2);
     this.canvas.width=Math.round(this.width*this.dpr);this.canvas.height=Math.round(this.height*this.dpr);
     this.starfield=document.createElement('canvas');this.starfield.width=this.canvas.width;this.starfield.height=this.canvas.height;
+    this.gridfield=document.createElement('canvas');this.gridfield.width=this.canvas.width;this.gridfield.height=this.canvas.height;
     const sky=this.starfield.getContext('2d')!;sky.scale(this.dpr,this.dpr);
     const count=Math.min(500,Math.ceil(this.width*this.height/4200));
     for(let i=0;i<count;i++) {
@@ -99,19 +106,24 @@ export class Renderer {
       sky.fillStyle=`rgba(130,196,222,${.12+bright*.38})`;sky.beginPath();sky.arc(x,y,bright>.94?1.2:.6,0,Math.PI*2);sky.fill();
       if(bright>.97){sky.strokeStyle='#6ba7c21b';sky.lineWidth=.6;sky.beginPath();sky.moveTo(x-4,y);sky.lineTo(x+4,y);sky.moveTo(x,y-4);sky.lineTo(x,y+4);sky.stroke();}
     }
-    // A quiet polar reference grid is cached with the stars, not rebuilt per frame.
+    // Keep the grid in its own layer so it can sit closer to the foreground than the stars.
+    const grid=this.gridfield.getContext('2d')!;grid.scale(this.dpr,this.dpr);
     const cx=this.width*.43,cy=this.height*.52;
-    sky.strokeStyle='#40879a0c';sky.lineWidth=.7;
-    for(let r=120;r<Math.max(this.width,this.height);r+=120){sky.beginPath();sky.arc(cx,cy,r,0,Math.PI*2);sky.stroke();}
-    for(let angle=0;angle<Math.PI*2;angle+=Math.PI/6){sky.beginPath();sky.moveTo(cx+Math.cos(angle)*50,cy+Math.sin(angle)*50);sky.lineTo(cx+Math.cos(angle)*1800,cy+Math.sin(angle)*1800);sky.stroke();}
+    grid.strokeStyle='#40879a0c';grid.lineWidth=.7;
+    for(let r=120;r<Math.max(this.width,this.height);r+=120){grid.beginPath();grid.arc(cx,cy,r,0,Math.PI*2);grid.stroke();}
+    for(let angle=0;angle<Math.PI*2;angle+=Math.PI/6){grid.beginPath();grid.moveTo(cx+Math.cos(angle)*50,cy+Math.sin(angle)*50);grid.lineTo(cx+Math.cos(angle)*1800,cy+Math.sin(angle)*1800);grid.stroke();}
     return true;
   }
-  restore():void {this.starfield=null;this.artwork.clear();this.resize(this.width,this.height);}
+  restore():void {this.starfield=null;this.gridfield=null;this.artwork.clear();this.resize(this.width,this.height);}
   draw(camera:Camera,options:RenderOptions):void {
     this.artwork.beginFrame();
     const ctx=this.ctx,sim=this.simulation,nodes=sim.graph.nodes,{selected,hovered,matches}=options;
+    const parallax=options.parallax??{x:0,y:0};
     ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-    if(this.starfield)ctx.drawImage(this.starfield,0,0);
+    // The tiled layers move at different rates, creating depth while the particle
+    // system is dragged. Tiling prevents empty edges during a large pan.
+    this.drawParallaxLayer(ctx,this.starfield,parallax.x*.08,parallax.y*.08);
+    this.drawParallaxLayer(ctx,this.gridfield,parallax.x*.32,parallax.y*.32);
     ctx.setTransform(this.dpr*camera.scale,0,0,this.dpr*camera.scale,this.dpr*camera.x,this.dpr*camera.y);
     const view:Bounds={x:-camera.x/camera.scale,y:-camera.y/camera.scale,width:this.width/camera.scale,height:this.height/camera.scale};
     if(options.orbits) {
@@ -140,6 +152,7 @@ export class Renderer {
       ctx.beginPath();ctx.moveTo(sim.projectedX[i],sim.projectedY[i]);ctx.lineTo(sim.projectedX[parent],sim.projectedY[parent]);ctx.stroke();
     }
     this.visible=0;
+    let fallbackDetails=0;
     for(const i of sim.depthOrder) {
       const node=nodes[i],r=(node.radius+29)*sim.depthScale[i],x=sim.projectedX[i],y=sim.projectedY[i];
       if(sim.depthScale[i]===0)continue;
@@ -156,7 +169,12 @@ export class Renderer {
         sprite=this.artwork.get(node,resolution,priority);
       }
       if(sprite)ctx.drawImage(sprite,x-r,y-r,r*2,r*2);
-      else {
+      else if(priority||((diameter>=36)&&fallbackDetails<8)) {
+        // Limit uncached detail work while preserving the active person.
+        fallbackDetails++;
+        ctx.save();ctx.translate(x,y);ctx.scale(sim.depthScale[i],sim.depthScale[i]);
+        this.artwork.draw(ctx,node);ctx.restore();
+      } else {
         ctx.fillStyle=node.location.color;ctx.beginPath();ctx.arc(x,y,node.radius*sim.depthScale[i],0,Math.PI*2);ctx.fill();
         if(diameter>=12){ctx.strokeStyle='#92d1dc';ctx.lineWidth=1/camera.scale;ctx.beginPath();ctx.arc(x,y,(node.radius+14)*sim.depthScale[i],0,Math.PI*2);ctx.stroke();}
       }
@@ -183,5 +201,14 @@ export class Renderer {
       ctx.fillStyle=i===selected?'#a6f7ff':'#78aab9';ctx.fillText(label,x,y);
     }
   }
-  destroy():void {this.artwork.destroy();this.starfield=null;}
+  private drawParallaxLayer(ctx:CanvasRenderingContext2D,layer:HTMLCanvasElement|null,x:number,y:number):void {
+    if(!layer)return;
+    const width=this.canvas.width,height=this.canvas.height,physicalX=x*this.dpr,physicalY=y*this.dpr;
+    const offsetX=((physicalX%width)+width)%width,offsetY=((physicalY%height)+height)%height;
+    ctx.save();
+    for(const dx of [-width,0,width]) for(const dy of [-height,0,height])
+      ctx.drawImage(layer,offsetX+dx,offsetY+dy);
+    ctx.restore();
+  }
+  destroy():void {this.artwork.destroy();this.starfield=null;this.gridfield=null;}
 }
